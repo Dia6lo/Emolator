@@ -1,4 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -12,65 +15,59 @@ namespace Emolator
             InitializeComponent();
             var a = File.ReadAllBytes("Wheel of Fortune (USA).nes");
             var b = System.Text.Encoding.Default.GetString(a);
-            var c = RomFactory.CreateRom(a);
+            var c = Rom.Create(a);
             pictureBox1.Image = Image.FromFile("D:\\Downloads\\minimalistic_pixels_dirt_minecraft_pixelation_simple_background_1920x1200_wallpaper_Wallpaper_800x600_www.wall321.com.jpg");
-        }
-    }
-
-    public class RomFactory
-    {
-        public static Rom CreateRom(byte[] bytes)
-        {
-            if ((bytes[7] & 0x0C) == 0x08)
-            {
-                // TODO: Add ROM size check.
-                return new NewNes(bytes);
-            }
-            if ((bytes[7] & 0x0C) == 0x00)
-            {
-                //TODO: Add 12-15 emptiness check.
-                return new CommonNes(bytes);
-            }
-            return new ArchaicNes(bytes);
         }
     }
 
     public class Rom
     {
         private readonly byte[] bytes;
+        private readonly ArraySegment<byte> prg;
 
         public Rom(byte[] bytes)
         {
             this.bytes = bytes;
+            prg = new ArraySegment<byte>(bytes, 16, 16384 * PrgSize);
         }
 
-        public byte[] PRG
+        public byte PrgSize => bytes[4];
+
+        public IReadOnlyCollection<byte> Prg => prg;
+
+        public static Rom Create(byte[] bytes)
         {
-            get
+            switch (bytes[7] & 0x0C)
             {
-                // TODO
-                return bytes.Skip(16).ToArray();
+                case 0x08:
+                    // TODO: Add ROM size check.
+                    return new NewNesRom(bytes);
+                case 0x00:
+                    //TODO: Add 12-15 emptiness check.
+                    return new CommonNesRom(bytes);
+                default:
+                    return new ArchaicNesRom(bytes);
             }
         }
     }
 
-    public class ArchaicNes: Rom
+    public class ArchaicNesRom: Rom
     {
-        public ArchaicNes(byte[] bytes) : base(bytes)
+        public ArchaicNesRom(byte[] bytes) : base(bytes)
         {
         }
     }
 
-    public class CommonNes : Rom
+    public class CommonNesRom : Rom
     {
-        public CommonNes(byte[] bytes) : base(bytes)
+        public CommonNesRom(byte[] bytes) : base(bytes)
         {
         }
     }
 
-    public class NewNes : Rom
+    public class NewNesRom : Rom
     {
-        public NewNes(byte[] bytes) : base(bytes)
+        public NewNesRom(byte[] bytes) : base(bytes)
         {
         }
     }
