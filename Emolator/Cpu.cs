@@ -72,7 +72,10 @@ namespace Emolator
                 case 0xa9: // LDA
                     result = LoadAccumulator(programCounter++);
                     break;
-                case 0x8d: // STA
+                case 0x85: // STA Zero Page
+                    result = StoreAccumulator(NextByte());
+                    break;
+                case 0x8d: // STA Absolute
                     result = StoreAccumulator(NextShort());
                     break;
                 case 0xaa: // TAX
@@ -81,7 +84,10 @@ namespace Emolator
                 case 0xe8: // INX
                     result = x++;
                     break;
-                case 0x69: // ADC
+                case 0x65: // ADC Zero Page
+                    result = AddWithCarry(NextByte());
+                    break;
+                case 0x69: // ADC Immediate
                     result = AddWithCarry(programCounter++);
                     break;
                 case 0x00: // BRK
