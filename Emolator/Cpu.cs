@@ -1,46 +1,53 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Emolator
 {
     public class Console
     {
-        private Cpu cpu = new Cpu();
-        private short[] memory = new short[0x10000];
+        private Cpu cpu;
+        private DataBus dataBus;
+
+        // TODO
+        private readonly byte[] lowMemory = new byte[0x0600];
+
+        // TODO
+        private readonly byte[] highMemory = new byte[0xe300];
+
+        // TODO
+        private readonly byte[] program =
+        {
+            0xa9, 0xc0, 0xaa, 0xe8, 0x69, 0xc4, 0x00
+        };
 
         public Console()
         {
+            dataBus = new DataBus();
+            dataBus.Bind(0, lowMemory);
+            dataBus.Bind(0x0600, program);
+            dataBus.Bind(0x0700, highMemory);
+            cpu = new Cpu(dataBus);
+        }
 
+        public void Tick()
+        {
+            cpu.Advance();
         }
     }
 
     public class Cpu
     {
+        private readonly DataBus dataBus;
         private byte accumulator;
-        private short programCounter;
+        private ushort programCounter = 0x0600;
 
-        // TODO
-        private readonly byte[] memory = new byte[0xffff];
+        public Cpu(DataBus dataBus)
+        {
+            this.dataBus = dataBus;
+        }
 
-        // TODO
-        private readonly byte[] program = {
-            0xa9,
-            0x01,
-            0x8d,
-            0x00,
-            0x02,
-            0xa9,
-            0x05,
-            0x8d,
-            0x01,
-            0x02,
-            0xa9,
-            0x08,
-            0x8d,
-            0x02,
-            0x02
-        };
-
-        private byte NextByte() => program[programCounter++];
+        private byte NextByte() => dataBus[programCounter++];
 
         private ushort NextShort() => (ushort)(NextByte() + (NextByte() << 8));
 
@@ -49,23 +56,47 @@ namespace Emolator
             switch (NextByte())
             {
                 case 0xa9:
-                    LoadAccumulator();
+                    LoadAccumulator(programCounter++);
                     break;
                 case 0x8d:
-                    StoreAccumulator();
+                    StoreAccumulator(NextShort());
                     break;
             }
         }
 
-        private void LoadAccumulator()
+        private void LoadAccumulator(ushort address)
         {
-            accumulator = NextByte();
+            accumulator = dataBus[address];
         }
 
-        private void StoreAccumulator()
+        private void StoreAccumulator(ushort address)
         {
-            var nextShort = NextShort();
-            memory[nextShort] = accumulator;
+            dataBus[address] = accumulator;
+        }
+    }
+
+    public class DataBus
+    {
+        // TODO
+        private List<Tuple<ushort, byte[]>> bindings = new List<Tuple<ushort, byte[]>>();
+
+        public void Bind(ushort start, byte[] bytes)
+        {
+            bindings.Add(new Tuple<ushort, byte[]>(start, bytes));
+        }
+
+        public byte this[ushort address]
+        {
+            get
+            {
+                var memory = bindings.Last(b => b.Item1 <= address);
+                return memory.Item2[address - memory.Item1];
+            }
+            set
+            {
+                var memory = bindings.Last(b => b.Item1 <= address);
+                memory.Item2[address - memory.Item1] = value;
+            }
         }
     }
 }

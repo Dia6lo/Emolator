@@ -11,10 +11,10 @@ namespace Emolator
         [STAThread]
         static void Main()
         {
-            var cpu = new Cpu();
+            var console = new Console();
             while (true)
             {
-                cpu.Advance();
+                console.Tick();
             }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
