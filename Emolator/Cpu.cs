@@ -66,43 +66,45 @@ namespace Emolator
 
         public void Advance()
         {
+            var result = -1;
             switch (NextByte())
             {
                 case 0xa9: // LDA
-                    LoadAccumulator(programCounter++);
+                    result = LoadAccumulator(programCounter++);
                     break;
                 case 0x8d: // STA
-                    StoreAccumulator(NextShort());
+                    result = StoreAccumulator(NextShort());
                     break;
                 case 0xaa: // TAX
-                    x = accumulator;
+                    result = x = accumulator;
                     break;
                 case 0xe8: // INX
-                    x++;
+                    result = x++;
                     break;
                 case 0x69: // ADC
-                    AddWithCarry(programCounter++);
+                    result = AddWithCarry(programCounter++);
                     break;
                 case 0x00: // BRK
                     break;
             }
+            SetFlag(CpuFlags.Zero, result == 0);
         }
 
-        private void LoadAccumulator(ushort address)
+        private int LoadAccumulator(ushort address)
         {
-            accumulator = dataBus[address];
+            return accumulator = dataBus[address];
         }
 
-        private void StoreAccumulator(ushort address)
+        private int StoreAccumulator(ushort address)
         {
-            dataBus[address] = accumulator;
+            return dataBus[address] = accumulator;
         }
 
-        private void AddWithCarry(ushort address)
+        private int AddWithCarry(ushort address)
         {
             var result = accumulator + dataBus[address];
-            accumulator = (byte) result;
             SetFlag(CpuFlags.Carry, result > byte.MaxValue);
+            return accumulator = (byte) result;
         }
     }
 
@@ -110,11 +112,12 @@ namespace Emolator
     public enum CpuFlags : byte
     {
         Carry            = 1 << 0,
-        InterruptDisable = 1 << 1,
-        DecimalMode      = 1 << 2,
-        Break            = 1 << 3,
-        Overflow         = 1 << 5,
-        Negative         = 1 << 6,
+        Zero             = 1 << 1,
+        InterruptDisable = 1 << 2,
+        DecimalMode      = 1 << 3,
+        Break            = 1 << 4,
+        Overflow         = 1 << 6,
+        Negative         = 1 << 7,
 }
 
     public class DataBus
