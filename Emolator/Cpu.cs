@@ -40,11 +40,35 @@ namespace Emolator
     {
         private readonly DataBus dataBus;
         private byte accumulator;
+        private byte x;
+        private byte y;
         private ushort programCounter = 0x0600;
+        private byte flags = 48; // 00110000
 
         public Cpu(DataBus dataBus)
         {
             this.dataBus = dataBus;
+        }
+
+        private bool CarryFlag { get { return GetFlag(0); } set { SetFlag(0, value); } }
+        private bool ZeroFlag { get { return GetFlag(1); } set { SetFlag(1, value); } }
+        private bool InterruptDisableFlag { get { return GetFlag(2); } set { SetFlag(2, value); } }
+        private bool DecimalModeFlag { get { return GetFlag(3); } set { SetFlag(3, value); } }
+        private bool BreakCommandFlag { get { return GetFlag(4); } set { SetFlag(4, value); } }
+        private bool OverflowFlag { get { return GetFlag(6); } set { SetFlag(6, value); } }
+        private bool NegativeFlag { get { return GetFlag(7); } set { SetFlag(7, value); } }
+
+        private bool GetFlag(int index)
+        {
+            return (flags & (1 << index)) != 0;
+        }
+
+        private void SetFlag(int index, bool value)
+        {
+            if (value)
+                flags |= (byte)(1 << index);
+            else
+                flags &= (byte)~(1 << index);
         }
 
         private byte NextByte() => dataBus[programCounter++];
@@ -55,11 +79,22 @@ namespace Emolator
         {
             switch (NextByte())
             {
-                case 0xa9:
+                case 0xa9: // LDA
                     LoadAccumulator(programCounter++);
                     break;
-                case 0x8d:
+                case 0x8d: // STA
                     StoreAccumulator(NextShort());
+                    break;
+                case 0xaa: // TAX
+                    x = accumulator;
+                    break;
+                case 0xe8: // INX
+                    x++;
+                    break;
+                case 0x69: // ADC
+                    AddWithCarry(programCounter++);
+                    break;
+                case 0x00: // BRK
                     break;
             }
         }
@@ -72,6 +107,13 @@ namespace Emolator
         private void StoreAccumulator(ushort address)
         {
             dataBus[address] = accumulator;
+        }
+
+        private void AddWithCarry(ushort address)
+        {
+            var result = accumulator + dataBus[address];
+            accumulator = (byte) result;
+            CarryFlag = result > byte.MaxValue;
         }
     }
 
