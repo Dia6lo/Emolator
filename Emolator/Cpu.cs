@@ -69,20 +69,7 @@ namespace Emolator
             var result = -1;
             switch (NextByte())
             {
-                case 0xa9: // LDA
-                    result = LoadAccumulator(programCounter++);
-                    break;
-                case 0x85: // STA Zero Page
-                    result = StoreAccumulator(NextByte());
-                    break;
-                case 0x8d: // STA Absolute
-                    result = StoreAccumulator(NextShort());
-                    break;
-                case 0xaa: // TAX
-                    result = x = accumulator;
-                    break;
-                case 0xe8: // INX
-                    result = x++;
+                case 0x00: // BRK
                     break;
                 case 0x65: // ADC Zero Page
                     result = AddWithCarry(NextByte());
@@ -90,7 +77,20 @@ namespace Emolator
                 case 0x69: // ADC Immediate
                     result = AddWithCarry(programCounter++);
                     break;
-                case 0x00: // BRK
+                case 0x85: // STA Zero Page
+                    result = StoreAccumulator(NextByte());
+                    break;
+                case 0x8d: // STA Absolute
+                    result = StoreAccumulator(NextShort());
+                    break;
+                case 0xa9: // LDA
+                    result = LoadAccumulator(programCounter++);
+                    break;
+                case 0xaa: // TAX
+                    result = Transfer(ref accumulator, ref x);
+                    break;
+                case 0xe8: // INX
+                    result = Increment(ref x);
                     break;
             }
             SetFlag(CpuFlags.Zero, result == 0);
@@ -111,6 +111,21 @@ namespace Emolator
             var result = accumulator + dataBus[address];
             SetFlag(CpuFlags.Carry, result > byte.MaxValue);
             return accumulator = (byte) result;
+        }
+
+        private int Transfer(ref byte from, ref byte to)
+        {
+            return to = from;
+        }
+
+        private int Increment(ref byte value)
+        {
+            return value++;
+        }
+
+        private int Decrement(ref byte value)
+        {
+            return value--;
         }
     }
 
