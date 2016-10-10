@@ -43,32 +43,21 @@ namespace Emolator
         private byte x;
         private byte y;
         private ushort programCounter = 0x0600;
-        private byte flags = 48; // 00110000
+        private CpuFlags flags = (CpuFlags) 48; // 00110000
 
         public Cpu(DataBus dataBus)
         {
             this.dataBus = dataBus;
         }
 
-        private bool CarryFlag { get { return GetFlag(0); } set { SetFlag(0, value); } }
-        private bool ZeroFlag { get { return GetFlag(1); } set { SetFlag(1, value); } }
-        private bool InterruptDisableFlag { get { return GetFlag(2); } set { SetFlag(2, value); } }
-        private bool DecimalModeFlag { get { return GetFlag(3); } set { SetFlag(3, value); } }
-        private bool BreakCommandFlag { get { return GetFlag(4); } set { SetFlag(4, value); } }
-        private bool OverflowFlag { get { return GetFlag(6); } set { SetFlag(6, value); } }
-        private bool NegativeFlag { get { return GetFlag(7); } set { SetFlag(7, value); } }
+        private bool GetFlag(CpuFlags flag) => flags.HasFlag(flag);
 
-        private bool GetFlag(int index)
-        {
-            return (flags & (1 << index)) != 0;
-        }
-
-        private void SetFlag(int index, bool value)
+        private void SetFlag(CpuFlags flag, bool value)
         {
             if (value)
-                flags |= (byte)(1 << index);
+                flags |= flag;
             else
-                flags &= (byte)~(1 << index);
+                flags &= ~flag;
         }
 
         private byte NextByte() => dataBus[programCounter++];
@@ -113,9 +102,20 @@ namespace Emolator
         {
             var result = accumulator + dataBus[address];
             accumulator = (byte) result;
-            CarryFlag = result > byte.MaxValue;
+            SetFlag(CpuFlags.Carry, result > byte.MaxValue);
         }
     }
+
+    [Flags]
+    public enum CpuFlags : byte
+    {
+        Carry            = 1 << 0,
+        InterruptDisable = 1 << 1,
+        DecimalMode      = 1 << 2,
+        Break            = 1 << 3,
+        Overflow         = 1 << 5,
+        Negative         = 1 << 6,
+}
 
     public class DataBus
     {
