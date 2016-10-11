@@ -71,35 +71,35 @@ namespace Emolator
             {
                 case 0x00: // BRK
                     break;
-                case 0x65: // ADC Zero Page
-                    result = AddWithCarry(NextByte());
+                case 0x65: // ADC
+                    result = AddWithCarry(ZeroPage());
                     break;
-                case 0x69: // ADC Immediate
-                    result = AddWithCarry(programCounter++);
+                case 0x69: // ADC
+                    result = AddWithCarry(Immediate());
                     break;
-                case 0x85: // STA Zero Page
-                    result = Store(NextByte(), accumulator);
+                case 0x85: // STA
+                    result = Store(ZeroPage(), accumulator);
                     break;
-                case 0x8d: // STA Absolute
-                    result = Store(NextShort(), accumulator);
+                case 0x8d: // STA
+                    result = Store(Absolute(), accumulator);
                     break;
-                case 0x8e: // STX Absolute
-                    result = Store(NextShort(), x);
+                case 0x8e: // STX
+                    result = Store(Absolute(), x);
                     break;
                 case 0xa9: // LDA
-                    result = Load(out accumulator, programCounter++);
+                    result = Load(out accumulator, Immediate());
                     break;
                 case 0xaa: // TAX
                     result = Transfer(accumulator, out x);
                     break;
-                case 0xa2: // LDX Immediate
-                    result = Load(out x, programCounter++);
+                case 0xa2: // LDX
+                    result = Load(out x, Immediate());
                     break;
                 case 0xca: // DEX
                     result = Decrement(ref x);
                     break;
-                case 0xe0: // CPX Immediate
-                    result = Compare(x, programCounter++);
+                case 0xe0: // CPX
+                    result = Compare(x, Immediate());
                     break;
                 case 0xe8: // INX
                     result = Increment(ref x);
@@ -110,6 +110,17 @@ namespace Emolator
             }
             SetFlag(CpuFlags.Zero, result == 0);
         }
+
+        private ushort Absolute() => NextShort();
+        private ushort AbsoluteX() => (ushort)(NextShort() + x);
+        private ushort AbsoluteY() => (ushort)(NextShort() + y);
+        private ushort ZeroPage() => NextByte();
+        private ushort ZeroPageX() => (ushort)(NextByte() + x);
+        private ushort ZeroPageY() => (ushort)(NextByte() + y);
+        private ushort Immediate() => programCounter++;
+        private ushort Indirect() => dataBus[Absolute()];
+        private ushort IndexedIndirectX() => dataBus[ZeroPageX()];
+        private ushort IndirectIndexedY() => (ushort)(dataBus[ZeroPage()] + y);
 
         private int Load(out byte target, ushort address)
         {
@@ -152,9 +163,9 @@ namespace Emolator
 
         private int Branch(bool condition)
         {
-            var displacement = NextByte();
+            var target = (ushort)(programCounter - (byte.MaxValue - NextByte()));
             if (!condition) return -1;
-            programCounter -= (ushort)(byte.MaxValue - displacement + 1);
+            programCounter = target;
             return -1;
         }
     }
