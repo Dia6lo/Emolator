@@ -17,7 +17,7 @@ namespace Emolator
         // TODO
         private readonly byte[] program =
         {
-            0xa9 ,0xaf ,0x48
+            0xa9 ,0x03 ,0x4c ,0x08 ,0x06 ,0x00 ,0x00 ,0x00 ,0x8d ,0x00 ,0x02
         };
 
         public Console()
@@ -76,6 +76,9 @@ namespace Emolator
                     break;
                 case 0x48: // PHA
                     result = PushAccumulator();
+                    break;
+                case 0x4c: // JMP
+                    result = Jump(Absolute());
                     break;
                 case 0x65: // ADC
                     result = AddWithCarry(ZeroPage());
@@ -187,6 +190,12 @@ namespace Emolator
         private int PullAccumulator()
         {
             accumulator = stack[stackPointer++];
+            return -1;
+        }
+
+        private int Jump(ushort address)
+        {
+            programCounter = address;
             return -1;
         }
     }
