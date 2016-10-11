@@ -10,21 +10,21 @@ namespace Emolator
         private DataBus dataBus;
 
         // TODO
-        private readonly byte[] lowMemory = new byte[0x0600];
-
-        // TODO
+        private readonly byte[] lowMemory = new byte[0x0100];
+        private readonly byte[] medMemory = new byte[0x0400];
         private readonly byte[] highMemory = new byte[0xe300];
 
         // TODO
         private readonly byte[] program =
         {
-            0xa2 ,0x08 ,0xca ,0x8e ,0x00 ,0x02 ,0xe0 ,0x03 ,0xd0 ,0xf8 ,0x8e ,0x01 ,0x02 ,0x00
+            0xa9 ,0xaf ,0x48
         };
 
         public Console()
         {
             dataBus = new DataBus();
-            dataBus.Bind(0, lowMemory);
+            dataBus.Bind(0x0000, lowMemory);
+            dataBus.Bind(0x0200, medMemory);
             dataBus.Bind(0x0600, program);
             dataBus.Bind(0x0700, highMemory);
             cpu = new Cpu(dataBus);
@@ -43,11 +43,14 @@ namespace Emolator
         private byte x;
         private byte y;
         private ushort programCounter = 0x0600;
+        private byte stackPointer = 0xff;
         private CpuFlags flags = (CpuFlags) 48; // 00110000
+        private readonly byte[] stack = new byte[0x100];
 
         public Cpu(DataBus dataBus)
         {
             this.dataBus = dataBus;
+            dataBus.Bind(0x0100, stack);
         }
 
         private bool GetFlag(CpuFlags flag) => flags.HasFlag(flag);
@@ -71,8 +74,14 @@ namespace Emolator
             {
                 case 0x00: // BRK
                     break;
+                case 0x48: // PHA
+                    result = PushAccumulator();
+                    break;
                 case 0x65: // ADC
                     result = AddWithCarry(ZeroPage());
+                    break;
+                case 0x68: // PLA
+                    result = PullAccumulator();
                     break;
                 case 0x69: // ADC
                     result = AddWithCarry(Immediate());
@@ -168,6 +177,18 @@ namespace Emolator
             programCounter = target;
             return -1;
         }
+
+        private int PushAccumulator()
+        {
+            stack[stackPointer--] = accumulator;
+            return -1;
+        }
+
+        private int PullAccumulator()
+        {
+            accumulator = stack[stackPointer++];
+            return -1;
+        }
     }
 
     [Flags]
@@ -196,12 +217,16 @@ namespace Emolator
         {
             get
             {
-                var memory = bindings.Last(b => b.Item1 <= address);
+                var memory = bindings.Where(b => b.Item1 <= address)
+                    .OrderByDescending(b => b.Item1)
+                    .First();
                 return memory.Item2[address - memory.Item1];
             }
             set
             {
-                var memory = bindings.Last(b => b.Item1 <= address);
+                var memory = bindings.Where(b => b.Item1 <= address)
+                    .OrderByDescending(b => b.Item1)
+                    .First();
                 memory.Item2[address - memory.Item1] = value;
             }
         }
