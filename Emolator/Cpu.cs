@@ -18,7 +18,7 @@ namespace Emolator
         // TODO
         private readonly byte[] program =
         {
-            0xa9, 0xc0, 0xaa, 0xe8, 0x69, 0xc4, 0x00
+            0xa2 ,0x08 ,0xca ,0x8e ,0x00 ,0x02 ,0xe0 ,0x03 ,0xd0 ,0xf8 ,0x8e ,0x01 ,0x02 ,0x00
         };
 
         public Console()
@@ -78,32 +78,47 @@ namespace Emolator
                     result = AddWithCarry(programCounter++);
                     break;
                 case 0x85: // STA Zero Page
-                    result = StoreAccumulator(NextByte());
+                    result = Store(NextByte(), accumulator);
                     break;
                 case 0x8d: // STA Absolute
-                    result = StoreAccumulator(NextShort());
+                    result = Store(NextShort(), accumulator);
+                    break;
+                case 0x8e: // STX Absolute
+                    result = Store(NextShort(), x);
                     break;
                 case 0xa9: // LDA
-                    result = LoadAccumulator(programCounter++);
+                    result = Load(out accumulator, programCounter++);
                     break;
                 case 0xaa: // TAX
-                    result = Transfer(ref accumulator, ref x);
+                    result = Transfer(accumulator, out x);
+                    break;
+                case 0xa2: // LDX Immediate
+                    result = Load(out x, programCounter++);
+                    break;
+                case 0xca: // DEX
+                    result = Decrement(ref x);
+                    break;
+                case 0xe0: // CPX Immediate
+                    result = Compare(x, programCounter++);
                     break;
                 case 0xe8: // INX
                     result = Increment(ref x);
+                    break;
+                case 0xd0: // BNE
+                    result = Branch(!GetFlag(CpuFlags.Zero));
                     break;
             }
             SetFlag(CpuFlags.Zero, result == 0);
         }
 
-        private int LoadAccumulator(ushort address)
+        private int Load(out byte target, ushort address)
         {
-            return accumulator = dataBus[address];
+            return target = dataBus[address];
         }
 
-        private int StoreAccumulator(ushort address)
+        private int Store(ushort address, byte value)
         {
-            return dataBus[address] = accumulator;
+            return dataBus[address] = value;
         }
 
         private int AddWithCarry(ushort address)
@@ -113,7 +128,7 @@ namespace Emolator
             return accumulator = (byte) result;
         }
 
-        private int Transfer(ref byte from, ref byte to)
+        private int Transfer(byte from, out byte to)
         {
             return to = from;
         }
@@ -126,6 +141,21 @@ namespace Emolator
         private int Decrement(ref byte value)
         {
             return value--;
+        }
+
+        private int Compare(byte value, ushort address)
+        {
+            var other = dataBus[address];
+            SetFlag(CpuFlags.Carry, value >= other);
+            return value == other ? 0 : -1;
+        }
+
+        private int Branch(bool condition)
+        {
+            var displacement = NextByte();
+            if (!condition) return -1;
+            programCounter -= (ushort)(byte.MaxValue - displacement + 1);
+            return -1;
         }
     }
 
