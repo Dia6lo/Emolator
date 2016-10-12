@@ -10,7 +10,7 @@ namespace Emolator
         ZeroPageY,
         Immediate,
         Relative,
-        Implicit,
+        Implied,
         Indirect,
         IndexedIndirectX,
         IndirectIndexedY,

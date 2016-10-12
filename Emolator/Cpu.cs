@@ -1,4 +1,6 @@
-﻿namespace Emolator
+﻿using System;
+
+namespace Emolator
 {
     public partial class Cpu
     {
@@ -27,28 +29,92 @@
                 flags &= ~flag;
         }
 
-        private byte NextByte() => dataBus[programCounter++];
+        private byte ReadByte(ushort address) => dataBus[address];
+
+        private ushort ReadShort(ushort address) => (ushort)(ReadByte(address) + (ReadByte((ushort)(address + 1)) << 8));
+
+        /// <summary>
+        /// Emulates a 6502 bug that caused the low byte to wrap without incrementing the high byte.
+        /// </summary>
+        private ushort ReadShortBug(ushort address)
+        {
+            var a = address;
+            var b = (ushort)((a * 0xff00) | (ushort) ((byte) a + 1));
+            var lo = ReadByte(a);
+            var hi = ReadByte(b);
+            return (ushort) ((ushort)hi << 8 | lo);
+        }
+
+    private byte NextByte() => dataBus[programCounter++];
 
         private ushort NextShort() => (ushort)(NextByte() + (NextByte() << 8));
 
         public void Advance()
         {
-            var opCode = NextByte();
-            var operation = operations[opCode];
-            var adressingMode = adressingModes[opCode];
-            System.Console.Out.WriteLine($"{opCode:X} = {operation.Method.Name} {adressingMode}");
+            var opCode = ReadByte(programCounter);
+            var instruction = instructions[opCode];
+            var adressingMode = instructionAdressingModes[opCode];
+            var instructionData = new InstructionData
+            {
+                Argument = GetInstructionArgument(adressingMode),
+                ProgramCounter = programCounter,
+                AddressingMode = adressingMode
+            };
+            programCounter += GetInstructionSize(adressingMode);
+            instruction(this, instructionData);
+            System.Console.Out.WriteLine($"{opCode:X} = {instruction.Method.Name} {adressingMode}");
         }
 
-        private ushort Absolute() => NextShort();
-        private ushort AbsoluteX() => (ushort)(NextShort() + x);
-        private ushort AbsoluteY() => (ushort)(NextShort() + y);
-        private ushort ZeroPage() => NextByte();
-        private ushort ZeroPageX() => (ushort)(NextByte() + x);
-        private ushort ZeroPageY() => (ushort)(NextByte() + y);
-        private ushort Immediate() => programCounter++;
-        private ushort Indirect() => dataBus[Absolute()];
-        private ushort IndexedIndirectX() => dataBus[ZeroPageX()];
-        private ushort IndirectIndexedY() => (ushort)(dataBus[ZeroPage()] + y);
+        private ushort GetInstructionArgument(AddressingMode mode)
+        {
+            var argumentAddress = (ushort) (programCounter + 1);
+            switch (mode)
+            {
+                case AddressingMode.Absolute: return ReadShort(argumentAddress);
+                case AddressingMode.AbsoluteX: return (ushort)(ReadShort(argumentAddress) + x);
+                case AddressingMode.AbsoluteY: return (ushort)(ReadShort(argumentAddress) + y);
+                case AddressingMode.ZeroPage: return ReadByte(argumentAddress);
+                case AddressingMode.ZeroPageX: return (ushort)(ReadByte(argumentAddress) + x);
+                case AddressingMode.ZeroPageY: return (ushort)(ReadByte(argumentAddress) + y);
+                case AddressingMode.Immediate: return argumentAddress;
+                case AddressingMode.Relative:
+                {
+                    var offset = ReadByte(argumentAddress);
+                    return offset < 0x80
+                        ? (ushort) (programCounter + 2 + offset)
+                        : (ushort) (programCounter + 2 + offset - 0x100);
+                }
+                case AddressingMode.Implied: return 0;
+                case AddressingMode.Indirect: return ReadShortBug(ReadShort(argumentAddress));
+                case AddressingMode.IndexedIndirectX: return ReadShortBug((ushort)(ReadByte(argumentAddress) + x));
+                case AddressingMode.IndirectIndexedY: return (ushort) (ReadShortBug(ReadByte(argumentAddress)) + x);
+                case AddressingMode.Accumulator: return 0;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private static ushort GetInstructionSize(AddressingMode mode)
+        {
+            switch (mode)
+            {
+                case AddressingMode.Absolute: return 3;
+                case AddressingMode.AbsoluteX: return 3;
+                case AddressingMode.AbsoluteY: return 3;
+                case AddressingMode.ZeroPage: return 2;
+                case AddressingMode.ZeroPageX: return 2;
+                case AddressingMode.ZeroPageY: return 2;
+                case AddressingMode.Immediate: return 2;
+                case AddressingMode.Relative: return 2;
+                case AddressingMode.Implied: return 1;
+                case AddressingMode.Indirect: return 3;
+                case AddressingMode.IndexedIndirectX: return 2;
+                case AddressingMode.IndirectIndexedY: return 2;
+                case AddressingMode.Accumulator: return 1;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         private int Load(out byte target, ushort address)
         {
