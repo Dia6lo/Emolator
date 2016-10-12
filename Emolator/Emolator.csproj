@@ -50,6 +50,7 @@
     <Compile Include="ArchaicNesRom.cs" />
     <Compile Include="CommonNesRom.cs" />
     <Compile Include="Console.cs" />
+    <Compile Include="Cpu.Opcodes.cs" />
     <Compile Include="Cpu.cs" />
     <Compile Include="CpuFlags.cs" />
     <Compile Include="DataBus.cs" />
@@ -60,6 +61,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="NewNesRom.cs" />
+    <Compile Include="OperationData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rom.cs" />

@@ -1,6 +1,6 @@
 ﻿namespace Emolator
 {
-    public class Cpu
+    public partial class Cpu
     {
         private readonly DataBus dataBus;
         private byte accumulator;
