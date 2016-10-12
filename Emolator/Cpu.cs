@@ -1,41 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Emolator
+﻿namespace Emolator
 {
-    public class Console
-    {
-        private Cpu cpu;
-        private DataBus dataBus;
-
-        // TODO
-        private readonly byte[] lowMemory = new byte[0x0100];
-        private readonly byte[] medMemory = new byte[0x0400];
-        private readonly byte[] highMemory = new byte[0xe300];
-
-        // TODO
-        private readonly byte[] program =
-        {
-            0xa9 ,0x03 ,0x4c ,0x08 ,0x06 ,0x00 ,0x00 ,0x00 ,0x8d ,0x00 ,0x02
-        };
-
-        public Console()
-        {
-            dataBus = new DataBus();
-            dataBus.Bind(0x0000, lowMemory);
-            dataBus.Bind(0x0200, medMemory);
-            dataBus.Bind(0x0600, program);
-            dataBus.Bind(0x0700, highMemory);
-            cpu = new Cpu(dataBus);
-        }
-
-        public void Tick()
-        {
-            cpu.Advance();
-        }
-    }
-
     public class Cpu
     {
         private readonly DataBus dataBus;
@@ -197,47 +161,6 @@ namespace Emolator
         {
             programCounter = address;
             return -1;
-        }
-    }
-
-    [Flags]
-    public enum CpuFlags : byte
-    {
-        Carry            = 1 << 0,
-        Zero             = 1 << 1,
-        InterruptDisable = 1 << 2,
-        DecimalMode      = 1 << 3,
-        Break            = 1 << 4,
-        Overflow         = 1 << 6,
-        Negative         = 1 << 7,
-}
-
-    public class DataBus
-    {
-        // TODO
-        private List<Tuple<ushort, byte[]>> bindings = new List<Tuple<ushort, byte[]>>();
-
-        public void Bind(ushort start, byte[] bytes)
-        {
-            bindings.Add(new Tuple<ushort, byte[]>(start, bytes));
-        }
-
-        public byte this[ushort address]
-        {
-            get
-            {
-                var memory = bindings.Where(b => b.Item1 <= address)
-                    .OrderByDescending(b => b.Item1)
-                    .First();
-                return memory.Item2[address - memory.Item1];
-            }
-            set
-            {
-                var memory = bindings.Where(b => b.Item1 <= address)
-                    .OrderByDescending(b => b.Item1)
-                    .First();
-                memory.Item2[address - memory.Item1] = value;
-            }
         }
     }
 }

@@ -47,15 +47,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArchaicNesRom.cs" />
+    <Compile Include="CommonNesRom.cs" />
+    <Compile Include="Console.cs" />
     <Compile Include="Cpu.cs" />
+    <Compile Include="CpuFlags.cs" />
+    <Compile Include="DataBus.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="NewNesRom.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rom.cs" />
     <None Include="Wheel of Fortune %28USA%29.nes">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
