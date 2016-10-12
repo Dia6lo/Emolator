@@ -1,280 +1,306 @@
-﻿namespace Emolator
+﻿using System;
+
+namespace Emolator
 {
     public partial class Cpu
     {
+        private Action<Cpu, OperationData>[] operations = {
+            Brk, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Php, Ora, Asl, Nop, Nop, Ora, Asl, Nop,
+            Bpl, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Clc, Ora, Nop, Nop, Nop, Ora, Asl, Nop,
+            Jsr, And, Nop, Nop, Bit, And, Rol, Nop, Plp, And, Rol, Nop, Bit, And, Rol, Nop,
+            Bmi, And, Nop, Nop, Nop, And, Rol, Nop, Sec, And, Nop, Nop, Nop, And, Rol, Nop,
+            Rti, Eor, Nop, Nop, Nop, Eor, Lsr, Nop, Pha, Eor, Lsr, Nop, Jmp, Eor, Lsr, Nop,
+            Bvc, Eor, Nop, Nop, Nop, Eor, Lsr, Nop, Cli, Eor, Nop, Nop, Nop, Eor, Lsr, Nop,
+            Rts, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Pla, Adc, Ror, Nop, Jmp, Adc, Ror, Nop,
+            Bvs, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Sei, Adc, Nop, Nop, Nop, Adc, Ror, Nop,
+            Nop, Sta, Nop, Nop, Sty, Sta, Stx, Nop, Dey, Nop, Txa, Nop, Sty, Sta, Stx, Nop,
+            Bcc, Sta, Nop, Nop, Sty, Sta, Stx, Nop, Tya, Sta, Txs, Nop, Nop, Sta, Nop, Nop,
+            Ldy, Lda, Ldx, Nop, Ldy, Lda, Ldx, Nop, Tay, Lda, Tax, Nop, Ldy, Lda, Ldx, Nop,
+            Bcs, Lda, Nop, Nop, Ldy, Lda, Ldx, Nop, Clv, Lda, Tsx, Nop, Ldy, Lda, Ldx, Nop,
+            Cpy, Cmp, Nop, Nop, Cpy, Cmp, Dec, Nop, Iny, Cmp, Dex, Nop, Cpy, Cmp, Dec, Nop,
+            Bne, Cmp, Nop, Nop, Nop, Cmp, Dec, Nop, Cld, Cmp, Nop, Nop, Nop, Cmp, Dec, Nop,
+            Cpx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop, Inx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop,
+            Beq, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop, Sed, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop
+        };
+
         /// <summary>
         /// ADd with Carry
         /// </summary>
-        private void Adc(OperationData data) { }
+        private static void Adc(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// bitwise AND with accumulator
         /// </summary>
-        private void And(OperationData data) { }
+        private static void And(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Arithmetic Shift Left
         /// </summary>
-        private void Asl(OperationData data) { }
+        private static void Asl(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// test BITs
         /// </summary>
-        private void Bit(OperationData data) { }
+        private static void Bit(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on PLus
         /// </summary>
-        private void Bpl(OperationData data) { }
+        private static void Bpl(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on MInus
         /// </summary>
-        private void Bmi(OperationData data) { }
+        private static void Bmi(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on oVerflow Clear
         /// </summary>
-        private void Bvc(OperationData data) { }
+        private static void Bvc(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on oVerflow Set
         /// </summary>
-        private void Bvs(OperationData data) { }
+        private static void Bvs(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on Carry Clear
         /// </summary>
-        private void Bcc(OperationData data) { }
+        private static void Bcc(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on Carry Set
         /// </summary>
-        private void Bcs(OperationData data) { }
+        private static void Bcs(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on Not Equal
         /// </summary>
-        private void Bne(OperationData data) { }
+        private static void Bne(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Branch on EQual
         /// </summary>
-        private void Beq(OperationData data) { }
+        private static void Beq(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// BReaK
         /// </summary>
-        private void Brk(OperationData data) { }
+        private static void Brk(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// CoMPare accumulator
         /// </summary>
-        private void Cmp(OperationData data) { }
+        private static void Cmp(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// ComPare X register
         /// </summary>
-        private void Cpx(OperationData data) { }
+        private static void Cpx(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// ComPare Y register
         /// </summary>
-        private void Cpy(OperationData data) { }
+        private static void Cpy(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// DECrement memory
         /// </summary>
-        private void Dec(OperationData data) { }
+        private static void Dec(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// bitwise Exclusive OR
         /// </summary>
-        private void Eor(OperationData data) { }
+        private static void Eor(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// CLear Carry
         /// </summary>
-        private void Clc(OperationData data) { }
+        private static void Clc(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// SEt Carry
         /// </summary>
-        private void Sec(OperationData data) { }
+        private static void Sec(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// CLear Interrupt
         /// </summary>
-        private void Cli(OperationData data) { }
+        private static void Cli(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// SEt Interrupt
         /// </summary>
-        private void Sei(OperationData data) { }
+        private static void Sei(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// CLear oVerflow
         /// </summary>
-        private void Clv(OperationData data) { }
+        private static void Clv(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// CLear Decimal
         /// </summary>
-        private void Cld(OperationData data) { }
+        private static void Cld(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// SEt Decimal
         /// </summary>
-        private void Sed(OperationData data) { }
+        private static void Sed(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// INCrement memory
         /// </summary>
-        private void Inc(OperationData data) { }
+        private static void Inc(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// JuMP
         /// </summary>
-        private void Jmp(OperationData data) { }
+        private static void Jmp(Cpu cpu, OperationData data) { }
+
+        /// <summary>
+        /// Jump to SubRoutine
+        /// </summary>
+        private static void Jsr(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// LoaD Accumulator
         /// </summary>
-        private void Lda(OperationData data) { }
+        private static void Lda(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// LoaD X registerSEt Decimal
         /// </summary>
-        private void Ldx(OperationData data) { }
+        private static void Ldx(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// LoaD Y register
         /// </summary>
-        private void Ldy(OperationData data) { }
+        private static void Ldy(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Logical Shift Right
         /// </summary>
-        private void Lsr(OperationData data) { }
+        private static void Lsr(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// No OPeration
         /// </summary>
-        private void Nop(OperationData data) { }
+        private static void Nop(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// bitwise OR with Accumulator
         /// </summary>
-        private void Ora(OperationData data) { }
+        private static void Ora(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Transfer A to X
         /// </summary>
-        private void Tax(OperationData data) { }
+        private static void Tax(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Transfer X to A
         /// </summary>
-        private void Txa(OperationData data) { }
+        private static void Txa(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// DEcrement X
         /// </summary>
-        private void Dex(OperationData data) { }
+        private static void Dex(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// INcrement X
         /// </summary>
-        private void Inx(OperationData data) { }
+        private static void Inx(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Transfer A to Y
         /// </summary>
-        private void Tay(OperationData data) { }
+        private static void Tay(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Transfer Y to A
         /// </summary>
-        private void Tya(OperationData data) { }
+        private static void Tya(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// DEcrement Y
         /// </summary>
-        private void Dey(OperationData data) { }
+        private static void Dey(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// INcrement Y
         /// </summary>
-        private void Iny(OperationData data) { }
+        private static void Iny(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// ROtate Left
         /// </summary>
-        private void Rol(OperationData data) { }
+        private static void Rol(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// ROtate Right
         /// </summary>
-        private void Ror(OperationData data) { }
+        private static void Ror(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// ReTurn from Interrupt
         /// </summary>
-        private void Rti(OperationData data) { }
+        private static void Rti(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// ReTurn from Subroutine
         /// </summary>
-        private void Rts(OperationData data) { }
+        private static void Rts(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// SuBtract with Carry
         /// </summary>
-        private void Sbc(OperationData data) { }
+        private static void Sbc(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// STore Accumulator
         /// </summary>
-        private void Sta(OperationData data) { }
+        private static void Sta(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Transfer X to Stack ptr
         /// </summary>
-        private void Txs(OperationData data) { }
+        private static void Txs(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// Transfer Stack ptr to X
         /// </summary>
-        private void Tsx(OperationData data) { }
+        private static void Tsx(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// PusH Accumulator
         /// </summary>
-        private void Pha(OperationData data) { }
+        private static void Pha(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// PuLl Accumulator
         /// </summary>
-        private void Pla(OperationData data) { }
+        private static void Pla(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// PusH Processor status
         /// </summary>
-        private void Php(OperationData data) { }
+        private static void Php(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// PuLl Processor status
         /// </summary>
-        private void Plp(OperationData data) { }
+        private static void Plp(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// STore X register
         /// </summary>
-        private void Stx(OperationData data) { }
+        private static void Stx(Cpu cpu, OperationData data) { }
 
         /// <summary>
         /// STore Y register
         /// </summary>
-        private void Sty(OperationData data) { }
+        private static void Sty(Cpu cpu, OperationData data) { }
     }
 }
