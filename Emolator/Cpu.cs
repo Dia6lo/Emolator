@@ -33,58 +33,10 @@
 
         public void Advance()
         {
-            var result = -1;
-            switch (NextByte())
-            {
-                case 0x00: // BRK
-                    break;
-                case 0x48: // PHA
-                    result = PushAccumulator();
-                    break;
-                case 0x4c: // JMP
-                    result = Jump(Absolute());
-                    break;
-                case 0x65: // ADC
-                    result = AddWithCarry(ZeroPage());
-                    break;
-                case 0x68: // PLA
-                    result = PullAccumulator();
-                    break;
-                case 0x69: // ADC
-                    result = AddWithCarry(Immediate());
-                    break;
-                case 0x85: // STA
-                    result = Store(ZeroPage(), accumulator);
-                    break;
-                case 0x8d: // STA
-                    result = Store(Absolute(), accumulator);
-                    break;
-                case 0x8e: // STX
-                    result = Store(Absolute(), x);
-                    break;
-                case 0xa9: // LDA
-                    result = Load(out accumulator, Immediate());
-                    break;
-                case 0xaa: // TAX
-                    result = Transfer(accumulator, out x);
-                    break;
-                case 0xa2: // LDX
-                    result = Load(out x, Immediate());
-                    break;
-                case 0xca: // DEX
-                    result = Decrement(ref x);
-                    break;
-                case 0xe0: // CPX
-                    result = Compare(x, Immediate());
-                    break;
-                case 0xe8: // INX
-                    result = Increment(ref x);
-                    break;
-                case 0xd0: // BNE
-                    result = Branch(!GetFlag(CpuFlags.Zero));
-                    break;
-            }
-            SetFlag(CpuFlags.Zero, result == 0);
+            var opCode = NextByte();
+            var operation = operations[opCode];
+            var adressingMode = adressingModes[opCode];
+            System.Console.Out.WriteLine($"{opCode:X} = {operation.Method.Name} {adressingMode}");
         }
 
         private ushort Absolute() => NextShort();
