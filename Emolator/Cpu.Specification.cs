@@ -4,7 +4,7 @@ namespace Emolator
 {
     public partial class Cpu
     {
-        private Action<Cpu, OperationData>[] operations = {
+        private static Action<Cpu, OperationData>[] operations = {
             Brk, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Php, Ora, Asl, Nop, Nop, Ora, Asl, Nop,
             Bpl, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Clc, Ora, Nop, Nop, Nop, Ora, Asl, Nop,
             Jsr, And, Nop, Nop, Bit, And, Rol, Nop, Plp, And, Rol, Nop, Bit, And, Rol, Nop,
@@ -22,6 +22,41 @@ namespace Emolator
             Cpx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop, Inx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop,
             Beq, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop, Sed, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop
         };
+
+        private static AddressingMode[] adressingModes = {
+            Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Imp, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
+            Abs, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Abs, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
+            Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Abs, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
+            Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Ind, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
+            Imp, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Imp, Imp, Imp, Abs, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Zpx, Zpx, Zpy, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Imp, Imp,
+            Ime, Iix, Ime, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Imp, Imp, Abs, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Zpx, Zpx, Zpy, Imp, Imp, Aby, Imp, Imp, Abx, Abx, Aby, Imp,
+            Ime, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Imp, Imp, Abs, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
+            Ime, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Imp, Imp, Abs, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp
+        };
+
+        
+        private static AddressingMode Abs => AddressingMode.Absolute;
+        private static AddressingMode Abx => AddressingMode.AbsoluteX;
+        private static AddressingMode Aby => AddressingMode.AbsoluteY;
+        private static AddressingMode Zpg => AddressingMode.ZeroPage;
+        private static AddressingMode Zpx => AddressingMode.ZeroPageX;
+        private static AddressingMode Zpy => AddressingMode.ZeroPageY;
+        private static AddressingMode Ime => AddressingMode.Immediate;
+        private static AddressingMode Rel => AddressingMode.Relative;
+        private static AddressingMode Imp => AddressingMode.Implicit;
+        private static AddressingMode Ind => AddressingMode.Indirect;
+        private static AddressingMode Iix => AddressingMode.IndexedIndirectX;
+        private static AddressingMode Iiy => AddressingMode.IndirectIndexedY;
+        private static AddressingMode Acc => AddressingMode.Accumulator;
+
 
         /// <summary>
         /// ADd with Carry

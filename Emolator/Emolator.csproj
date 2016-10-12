@@ -47,10 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddressingMode.cs" />
     <Compile Include="ArchaicNesRom.cs" />
     <Compile Include="CommonNesRom.cs" />
     <Compile Include="Console.cs" />
-    <Compile Include="Cpu.Opcodes.cs" />
+    <Compile Include="Cpu.Specification.cs" />
     <Compile Include="Cpu.cs" />
     <Compile Include="CpuFlags.cs" />
     <Compile Include="DataBus.cs" />
