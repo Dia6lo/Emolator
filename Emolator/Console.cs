@@ -4,12 +4,9 @@ namespace Emolator
     {
         private Cpu cpu;
         private DataBus dataBus;
-
-        // TODO
-        private readonly byte[] lowMemory = new byte[0x0100];
-        private readonly byte[] medMemory = new byte[0x0400];
-        private readonly byte[] highMemory = new byte[0xe300];
-
+        
+        private readonly byte[] ram = new byte[0x0800];
+        
         // TODO
         private readonly byte[] program =
         {
@@ -19,10 +16,11 @@ namespace Emolator
         public Console()
         {
             dataBus = new DataBus();
-            dataBus.Bind(0x0000, lowMemory);
-            dataBus.Bind(0x0200, medMemory);
-            dataBus.Bind(0x0600, program);
-            dataBus.Bind(0x0700, highMemory);
+            dataBus.Bind(0x0000, ram);
+            dataBus.Bind(0x0800, ram);
+            dataBus.Bind(0x1000, ram);
+            dataBus.Bind(0x1800, ram);
+            dataBus.Bind(0x2000, program);
             cpu = new Cpu(dataBus);
         }
 

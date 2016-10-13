@@ -11,12 +11,10 @@ namespace Emolator
         private ushort programCounter = 0x0600;
         private byte stackPointer = 0xff;
         private CpuFlags flags = (CpuFlags) 48; // 00110000
-        private readonly byte[] stack = new byte[0x100];
 
         public Cpu(DataBus dataBus)
         {
             this.dataBus = dataBus;
-            dataBus.Bind(0x0100, stack);
         }
 
         private bool GetFlag(CpuFlags flag) => flags.HasFlag(flag);
@@ -29,9 +27,15 @@ namespace Emolator
                 flags &= ~flag;
         }
 
+        private ushort StackAddress => ToShort(stackPointer, 0x01);
+
+        private static ushort ToShort(byte low, byte high) => (ushort) (low | high << 8);
+
         private byte ReadByte(ushort address) => dataBus[address];
 
-        private ushort ReadShort(ushort address) => (ushort)(ReadByte(address) + (ReadByte((ushort)(address + 1)) << 8));
+        private ushort ReadShort(ushort address) => ToShort(ReadByte(address), ReadByte((ushort)(address + 1)));
+
+        private void WriteByte(ushort address, byte value) => dataBus[address] = value;
 
         /// <summary>
         /// Emulates a 6502 bug that caused the low byte to wrap without incrementing the high byte.
@@ -40,14 +44,8 @@ namespace Emolator
         {
             var a = address;
             var b = (ushort)((a * 0xff00) | (ushort) ((byte) a + 1));
-            var lo = ReadByte(a);
-            var hi = ReadByte(b);
-            return (ushort) ((ushort)hi << 8 | lo);
+            return ToShort(ReadByte(a), ReadByte(b));
         }
-
-    private byte NextByte() => dataBus[programCounter++];
-
-        private ushort NextShort() => (ushort)(NextByte() + (NextByte() << 8));
 
         public void Advance()
         {
@@ -56,16 +54,16 @@ namespace Emolator
             var adressingMode = instructionAdressingModes[opCode];
             var instructionData = new InstructionData
             {
-                Argument = GetInstructionArgument(adressingMode),
+                ArgumentAddress = GetInstructionArgumentAddress(adressingMode),
                 ProgramCounter = programCounter,
                 AddressingMode = adressingMode
             };
             programCounter += GetInstructionSize(adressingMode);
             instruction(this, instructionData);
-            System.Console.Out.WriteLine($"{opCode:X} = {instruction.Method.Name} {adressingMode}");
+            System.Console.Out.WriteLine($"{opCode:X2} = {instruction.Method.Name.ToUpper()} {adressingMode} {instructionData.ArgumentAddress:X4}");
         }
 
-        private ushort GetInstructionArgument(AddressingMode mode)
+        private ushort GetInstructionArgumentAddress(AddressingMode mode)
         {
             var argumentAddress = (ushort) (programCounter + 1);
             switch (mode)
@@ -116,69 +114,101 @@ namespace Emolator
             }
         }
 
-        private int Load(out byte target, ushort address)
+
+        private void SetZero(byte value)
         {
-            return target = dataBus[address];
+            SetFlag(CpuFlags.Zero, value == 0);
         }
 
-        private int Store(ushort address, byte value)
+        private void SetNegative(byte value)
         {
-            return dataBus[address] = value;
+            SetFlag(CpuFlags.Zero, (value & 0x80) != 0);
         }
 
-        private int AddWithCarry(ushort address)
+        private void SetZeroNegative(byte value)
         {
-            var result = accumulator + dataBus[address];
+            SetZero(value);
+            SetNegative(value);
+        }
+
+        private void Load(out byte target, ushort address)
+        {
+            target = ReadByte(address);
+        }
+
+        private void Store(ushort address, byte value)
+        {
+            WriteByte(address, value);
+        }
+
+        private void AddWithCarry(ushort address)
+        {
+            var result = accumulator + ReadByte(address);
             SetFlag(CpuFlags.Carry, result > byte.MaxValue);
-            return accumulator = (byte) result;
+            accumulator = (byte) result;
         }
 
-        private int Transfer(byte from, out byte to)
+        private void Transfer(byte from, out byte to)
         {
-            return to = from;
+            to = from;
+            SetZeroNegative(to);
         }
 
-        private int Increment(ref byte value)
+        private void Increment(ref byte value)
         {
-            return value++;
+            value++;
         }
 
-        private int Decrement(ref byte value)
+        private void Decrement(ref byte value)
         {
-            return value--;
+            value--;
         }
 
-        private int Compare(byte value, ushort address)
+        private void Compare(byte value, ushort address)
         {
-            var other = dataBus[address];
+            var other = ReadByte(address);
             SetFlag(CpuFlags.Carry, value >= other);
-            return value == other ? 0 : -1;
         }
 
-        private int Branch(bool condition)
+        private void Branch(bool condition)
         {
-            var target = (ushort)(programCounter - (byte.MaxValue - NextByte()));
-            if (!condition) return -1;
-            programCounter = target;
-            return -1;
+            /*var target = (ushort)(programCounter - (byte.MaxValue - NextByte()));
+            if (!condition) return;
+            programCounter = target;*/
         }
 
-        private int PushAccumulator()
+        private void PushByte(byte value)
         {
-            stack[stackPointer--] = accumulator;
-            return -1;
+            WriteByte(StackAddress, value);
+            stackPointer--;
         }
 
-        private int PullAccumulator()
+        private byte PullByte()
         {
-            accumulator = stack[stackPointer++];
-            return -1;
+            var address = StackAddress;
+            stackPointer++;
+            return ReadByte(address);
         }
 
-        private int Jump(ushort address)
+        private void Jump(ushort address)
         {
             programCounter = address;
-            return -1;
+        }
+
+        private void RotateRight(ref byte value)
+        {
+            var c = GetFlag(CpuFlags.Carry) ? 1 : 0;
+            SetFlag(CpuFlags.Carry, (value & 1) != 0);
+            value = (byte)((value >> 1) | (c << 7));
+            SetZeroNegative(value);
+        }
+
+        private void RotateLeft(ref byte value)
+        {
+            var c = GetFlag(CpuFlags.Carry) ? 1 : 0;
+            SetFlag(CpuFlags.Carry, ((value >> 7) & 1) != 0);
+            value = (byte)((value << 1) | c);
+            SetZeroNegative(value);
         }
     }
 }

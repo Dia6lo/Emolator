@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Drawing;
+using System.Runtime.CompilerServices;
+using System.Xml.XPath;
 
 namespace Emolator
 {
@@ -169,37 +172,58 @@ namespace Emolator
         /// <summary>
         /// CLear Carry
         /// </summary>
-        private static void Clc(Cpu cpu, InstructionData data) { }
+        private static void Clc(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.Carry, false);
+        }
 
         /// <summary>
         /// SEt Carry
         /// </summary>
-        private static void Sec(Cpu cpu, InstructionData data) { }
+        private static void Sec(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.Carry, true);
+        }
 
         /// <summary>
         /// CLear Interrupt
         /// </summary>
-        private static void Cli(Cpu cpu, InstructionData data) { }
+        private static void Cli(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.InterruptDisable, false);
+        }
 
         /// <summary>
         /// SEt Interrupt
         /// </summary>
-        private static void Sei(Cpu cpu, InstructionData data) { }
+        private static void Sei(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.InterruptDisable, true);
+        }
 
         /// <summary>
         /// CLear oVerflow
         /// </summary>
-        private static void Clv(Cpu cpu, InstructionData data) { }
+        private static void Clv(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.Overflow, false);
+        }
 
         /// <summary>
         /// CLear Decimal
         /// </summary>
-        private static void Cld(Cpu cpu, InstructionData data) { }
+        private static void Cld(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.DecimalMode, false);
+        }
 
         /// <summary>
         /// SEt Decimal
         /// </summary>
-        private static void Sed(Cpu cpu, InstructionData data) { }
+        private static void Sed(Cpu cpu, InstructionData data)
+        {
+            cpu.SetFlag(CpuFlags.DecimalMode, true);
+        }
 
         /// <summary>
         /// INCrement memory
@@ -211,7 +235,7 @@ namespace Emolator
         /// </summary>
         private static void Jmp(Cpu cpu, InstructionData data)
         {
-            cpu.Jump(data.Argument);
+            cpu.Jump(data.ArgumentAddress);
         }
 
         /// <summary>
@@ -224,7 +248,7 @@ namespace Emolator
         /// </summary>
         private static void Lda(Cpu cpu, InstructionData data)
         {
-            cpu.Load(out cpu.accumulator, data.Argument);
+            cpu.Load(out cpu.accumulator, data.ArgumentAddress);
         }
 
         /// <summary>
@@ -255,12 +279,18 @@ namespace Emolator
         /// <summary>
         /// Transfer A to X
         /// </summary>
-        private static void Tax(Cpu cpu, InstructionData data) { }
+        private static void Tax(Cpu cpu, InstructionData data)
+        {
+            cpu.Transfer(cpu.accumulator, out cpu.x);
+        }
 
         /// <summary>
         /// Transfer X to A
         /// </summary>
-        private static void Txa(Cpu cpu, InstructionData data) { }
+        private static void Txa(Cpu cpu, InstructionData data)
+        {
+            cpu.Transfer(cpu.x, out cpu.accumulator);
+        }
 
         /// <summary>
         /// DEcrement X
@@ -275,12 +305,18 @@ namespace Emolator
         /// <summary>
         /// Transfer A to Y
         /// </summary>
-        private static void Tay(Cpu cpu, InstructionData data) { }
+        private static void Tay(Cpu cpu, InstructionData data)
+        {
+            cpu.Transfer(cpu.accumulator, out cpu.y);
+        }
 
         /// <summary>
         /// Transfer Y to A
         /// </summary>
-        private static void Tya(Cpu cpu, InstructionData data) { }
+        private static void Tya(Cpu cpu, InstructionData data)
+        {
+            cpu.Transfer(cpu.y, out cpu.accumulator);
+        }
 
         /// <summary>
         /// DEcrement Y
@@ -295,12 +331,32 @@ namespace Emolator
         /// <summary>
         /// ROtate Left
         /// </summary>
-        private static void Rol(Cpu cpu, InstructionData data) { }
+        private static void Rol(Cpu cpu, InstructionData data)
+        {
+            if (data.AddressingMode == AddressingMode.Accumulator) {
+                cpu.RotateLeft(ref cpu.accumulator);
+            }
+            else {
+                var value = cpu.ReadByte(data.ArgumentAddress);
+                cpu.RotateLeft(ref value);
+                cpu.WriteByte(data.ArgumentAddress, value);
+            }
+        }
 
         /// <summary>
         /// ROtate Right
         /// </summary>
-        private static void Ror(Cpu cpu, InstructionData data) { }
+        private static void Ror(Cpu cpu, InstructionData data)
+        {
+            if (data.AddressingMode == AddressingMode.Accumulator) {
+                cpu.RotateRight(ref cpu.accumulator);
+            }
+            else {
+                var value = cpu.ReadByte(data.ArgumentAddress);
+                cpu.RotateRight(ref value);
+                cpu.WriteByte(data.ArgumentAddress, value);
+            }
+        }
 
         /// <summary>
         /// ReTurn from Interrupt
@@ -315,25 +371,44 @@ namespace Emolator
         /// <summary>
         /// SuBtract with Carry
         /// </summary>
-        private static void Sbc(Cpu cpu, InstructionData data) { }
+        private static void Sbc(Cpu cpu, InstructionData data)
+        {
+            var a = cpu.accumulator;
+            var b = cpu.ReadByte(data.ArgumentAddress);
+            var result = a - b;
+            if (cpu.GetFlag(CpuFlags.Carry))
+                result -= 1;
+            cpu.accumulator = (byte) result;
+            cpu.SetZeroNegative(cpu.accumulator);
+            cpu.SetFlag(CpuFlags.Carry, result >= 0);
+            cpu.SetFlag(CpuFlags.Overflow, (((a ^ b) & 0x80) != 0) && (((a ^ cpu.accumulator) & 0x80) != 0));
+            
+        }
 
         /// <summary>
         /// STore Accumulator
         /// </summary>
         private static void Sta(Cpu cpu, InstructionData data)
         {
-            cpu.Store(data.Argument, cpu.accumulator);
+            cpu.Store(data.ArgumentAddress, cpu.accumulator);
         }
 
         /// <summary>
         /// Transfer X to Stack ptr
         /// </summary>
-        private static void Txs(Cpu cpu, InstructionData data) { }
+        private static void Txs(Cpu cpu, InstructionData data)
+        {
+            cpu.stackPointer = cpu.x;
+        }
 
         /// <summary>
         /// Transfer Stack ptr to X
         /// </summary>
-        private static void Tsx(Cpu cpu, InstructionData data) { }
+        private static void Tsx(Cpu cpu, InstructionData data)
+        {
+            cpu.x = cpu.stackPointer;
+            cpu.SetZeroNegative(cpu.x);
+        }
 
         /// <summary>
         /// PusH Accumulator
@@ -343,7 +418,11 @@ namespace Emolator
         /// <summary>
         /// PuLl Accumulator
         /// </summary>
-        private static void Pla(Cpu cpu, InstructionData data) { }
+        private static void Pla(Cpu cpu, InstructionData data)
+        {
+            cpu.accumulator = cpu.PullByte();
+            cpu.SetZeroNegative(cpu.accumulator);
+        }
 
         /// <summary>
         /// PusH Processor status
@@ -358,11 +437,17 @@ namespace Emolator
         /// <summary>
         /// STore X register
         /// </summary>
-        private static void Stx(Cpu cpu, InstructionData data) { }
+        private static void Stx(Cpu cpu, InstructionData data)
+        {
+            cpu.Store(data.ArgumentAddress, cpu.x);
+        }
 
         /// <summary>
         /// STore Y register
         /// </summary>
-        private static void Sty(Cpu cpu, InstructionData data) { }
+        private static void Sty(Cpu cpu, InstructionData data)
+        {
+            cpu.Store(data.ArgumentAddress, cpu.y);
+        }
     }
 }
