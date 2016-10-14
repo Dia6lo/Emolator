@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Xml.XPath;
+using System.Windows.Forms;
 
 namespace Emolator
 {
     public partial class Cpu
     {
-        private static Action<Cpu, InstructionData>[] instructions = {
+        private static Action<Cpu, InstructionData>[] instructions =
+        {
             Brk, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Php, Ora, Asl, Nop, Nop, Ora, Asl, Nop,
             Bpl, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Clc, Ora, Nop, Nop, Nop, Ora, Asl, Nop,
             Jsr, And, Nop, Nop, Bit, And, Rol, Nop, Plp, And, Rol, Nop, Bit, And, Rol, Nop,
@@ -26,7 +25,8 @@ namespace Emolator
             Beq, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop, Sed, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop
         };
 
-        private static AddressingMode[] instructionAdressingModes = {
+        private static AddressingMode[] instructionAdressingModes =
+        {
             Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Imp, Abs, Abs, Imp,
             Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
             Abs, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Abs, Abs, Abs, Imp,
@@ -45,7 +45,8 @@ namespace Emolator
             Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp
         };
 
-        private static int[] instructionCycles = {
+        private static int[] instructionCycles =
+        {
             7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
             2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
             6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,
@@ -82,92 +83,169 @@ namespace Emolator
         /// <summary>
         /// ADd with Carry
         /// </summary>
-        private static void Adc(Cpu cpu, InstructionData data) { }
+        private static void Adc(Cpu cpu, InstructionData data)
+        {
+            var a = cpu.accumulator;
+            var b = cpu.ReadByte(data.ArgumentAddress);
+            var c = cpu.GetFlag(CpuFlags.Carry) ? 1 : 0;
+            var result = a + b + c;
+            cpu.accumulator = (byte) result;
+            cpu.SetZeroNegative(cpu.accumulator);
+            cpu.SetFlag(CpuFlags.Carry, result > 0xff);
+            cpu.SetFlag(CpuFlags.Overflow, (((a ^ b) & 0x80) == 0) && (((a ^ cpu.accumulator) & 0x80) != 0));
+        }
 
         /// <summary>
         /// bitwise AND with accumulator
         /// </summary>
-        private static void And(Cpu cpu, InstructionData data) { }
+        private static void And(Cpu cpu, InstructionData data)
+        {
+            cpu.accumulator &= cpu.ReadByte(data.ArgumentAddress);
+            cpu.SetZeroNegative(cpu.accumulator);
+        }
 
         /// <summary>
         /// Arithmetic Shift Left
         /// </summary>
-        private static void Asl(Cpu cpu, InstructionData data) { }
+        private static void Asl(Cpu cpu, InstructionData data)
+        {
+            if (data.AddressingMode == AddressingMode.Accumulator)
+            {
+                cpu.ArithmeticShiftLeft(ref cpu.accumulator);
+            }
+            else
+            {
+                var value = cpu.ReadByte(data.ArgumentAddress);
+                cpu.ArithmeticShiftLeft(ref value);
+                cpu.WriteByte(data.ArgumentAddress, value);
+            }
+        }
 
         /// <summary>
         /// test BITs
         /// </summary>
-        private static void Bit(Cpu cpu, InstructionData data) { }
+        private static void Bit(Cpu cpu, InstructionData data)
+        {
+            var value = cpu.ReadByte(data.ArgumentAddress);
+            cpu.SetFlag(CpuFlags.Overflow, ((value >> 6) & 1) != 0);
+            cpu.SetZero((byte) (value & cpu.accumulator));
+            cpu.SetNegative(value);
+        }
 
         /// <summary>
         /// Branch on PLus
         /// </summary>
-        private static void Bpl(Cpu cpu, InstructionData data) { }
+        private static void Bpl(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on MInus
         /// </summary>
-        private static void Bmi(Cpu cpu, InstructionData data) { }
+        private static void Bmi(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on oVerflow Clear
         /// </summary>
-        private static void Bvc(Cpu cpu, InstructionData data) { }
+        private static void Bvc(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on oVerflow Set
         /// </summary>
-        private static void Bvs(Cpu cpu, InstructionData data) { }
+        private static void Bvs(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on Carry Clear
         /// </summary>
-        private static void Bcc(Cpu cpu, InstructionData data) { }
+        private static void Bcc(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on Carry Set
         /// </summary>
-        private static void Bcs(Cpu cpu, InstructionData data) { }
+        private static void Bcs(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on Not Equal
         /// </summary>
-        private static void Bne(Cpu cpu, InstructionData data) { }
+        private static void Bne(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Branch on EQual
         /// </summary>
-        private static void Beq(Cpu cpu, InstructionData data) { }
+        private static void Beq(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// BReaK
         /// </summary>
-        private static void Brk(Cpu cpu, InstructionData data) { }
+        private static void Brk(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// CoMPare accumulator
         /// </summary>
-        private static void Cmp(Cpu cpu, InstructionData data) { }
+        private static void Cmp(Cpu cpu, InstructionData data)
+        {
+            cpu.Compare(cpu.accumulator, cpu.ReadByte(data.ArgumentAddress));
+        }
 
         /// <summary>
         /// ComPare X register
         /// </summary>
-        private static void Cpx(Cpu cpu, InstructionData data) { }
+        private static void Cpx(Cpu cpu, InstructionData data)
+        {
+            cpu.Compare(cpu.x, cpu.ReadByte(data.ArgumentAddress));
+        }
 
         /// <summary>
         /// ComPare Y register
         /// </summary>
-        private static void Cpy(Cpu cpu, InstructionData data) { }
+        private static void Cpy(Cpu cpu, InstructionData data)
+        {
+            cpu.Compare(cpu.y, cpu.ReadByte(data.ArgumentAddress));
+        }
 
         /// <summary>
         /// DECrement memory
         /// </summary>
-        private static void Dec(Cpu cpu, InstructionData data) { }
+        private static void Dec(Cpu cpu, InstructionData data)
+        {
+            var value = cpu.ReadByte(data.ArgumentAddress);
+            cpu.Decrement(ref value);
+            cpu.WriteByte(data.ArgumentAddress, value);
+        }
 
         /// <summary>
         /// bitwise Exclusive OR
         /// </summary>
-        private static void Eor(Cpu cpu, InstructionData data) { }
+        private static void Eor(Cpu cpu, InstructionData data)
+        {
+            cpu.accumulator ^= cpu.ReadByte(data.ArgumentAddress);
+            cpu.SetZeroNegative(cpu.accumulator);
+        }
 
         /// <summary>
         /// CLear Carry
@@ -228,7 +306,12 @@ namespace Emolator
         /// <summary>
         /// INCrement memory
         /// </summary>
-        private static void Inc(Cpu cpu, InstructionData data) { }
+        private static void Inc(Cpu cpu, InstructionData data)
+        {
+            var value = cpu.ReadByte(data.ArgumentAddress);
+            cpu.Increment(ref value);
+            cpu.WriteByte(data.ArgumentAddress, value);
+        }
 
         /// <summary>
         /// JuMP
@@ -241,7 +324,10 @@ namespace Emolator
         /// <summary>
         /// Jump to SubRoutine
         /// </summary>
-        private static void Jsr(Cpu cpu, InstructionData data) { }
+        private static void Jsr(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// LoaD Accumulator
@@ -254,27 +340,51 @@ namespace Emolator
         /// <summary>
         /// LoaD X registerSEt Decimal
         /// </summary>
-        private static void Ldx(Cpu cpu, InstructionData data) { }
+        private static void Ldx(Cpu cpu, InstructionData data)
+        {
+            cpu.Load(out cpu.x, data.ArgumentAddress);
+        }
 
         /// <summary>
         /// LoaD Y register
         /// </summary>
-        private static void Ldy(Cpu cpu, InstructionData data) { }
+        private static void Ldy(Cpu cpu, InstructionData data)
+        {
+            cpu.Load(out cpu.y, data.ArgumentAddress);
+        }
 
         /// <summary>
         /// Logical Shift Right
         /// </summary>
-        private static void Lsr(Cpu cpu, InstructionData data) { }
+        private static void Lsr(Cpu cpu, InstructionData data)
+        {
+            if (data.AddressingMode == AddressingMode.Accumulator)
+            {
+                cpu.LogicalShiftLeft(ref cpu.accumulator);
+            }
+            else
+            {
+                var value = cpu.ReadByte(data.ArgumentAddress);
+                cpu.LogicalShiftLeft(ref value);
+                cpu.WriteByte(data.ArgumentAddress, value);
+            }
+        }
 
         /// <summary>
         /// No OPeration
         /// </summary>
-        private static void Nop(Cpu cpu, InstructionData data) { }
+        private static void Nop(Cpu cpu, InstructionData data)
+        {
+        }
 
         /// <summary>
         /// bitwise OR with Accumulator
         /// </summary>
-        private static void Ora(Cpu cpu, InstructionData data) { }
+        private static void Ora(Cpu cpu, InstructionData data)
+        {
+            cpu.accumulator = (byte) (cpu.accumulator | cpu.ReadByte(data.ArgumentAddress));
+            cpu.SetZeroNegative(cpu.accumulator);
+        }
 
         /// <summary>
         /// Transfer A to X
@@ -295,12 +405,18 @@ namespace Emolator
         /// <summary>
         /// DEcrement X
         /// </summary>
-        private static void Dex(Cpu cpu, InstructionData data) { }
+        private static void Dex(Cpu cpu, InstructionData data)
+        {
+            cpu.Decrement(ref cpu.x);
+        }
 
         /// <summary>
         /// INcrement X
         /// </summary>
-        private static void Inx(Cpu cpu, InstructionData data) { }
+        private static void Inx(Cpu cpu, InstructionData data)
+        {
+            cpu.Increment(ref cpu.x);
+        }
 
         /// <summary>
         /// Transfer A to Y
@@ -321,22 +437,30 @@ namespace Emolator
         /// <summary>
         /// DEcrement Y
         /// </summary>
-        private static void Dey(Cpu cpu, InstructionData data) { }
+        private static void Dey(Cpu cpu, InstructionData data)
+        {
+            cpu.Decrement(ref cpu.y);
+        }
 
         /// <summary>
         /// INcrement Y
         /// </summary>
-        private static void Iny(Cpu cpu, InstructionData data) { }
+        private static void Iny(Cpu cpu, InstructionData data)
+        {
+            cpu.Increment(ref cpu.y);
+        }
 
         /// <summary>
         /// ROtate Left
         /// </summary>
         private static void Rol(Cpu cpu, InstructionData data)
         {
-            if (data.AddressingMode == AddressingMode.Accumulator) {
+            if (data.AddressingMode == AddressingMode.Accumulator)
+            {
                 cpu.RotateLeft(ref cpu.accumulator);
             }
-            else {
+            else
+            {
                 var value = cpu.ReadByte(data.ArgumentAddress);
                 cpu.RotateLeft(ref value);
                 cpu.WriteByte(data.ArgumentAddress, value);
@@ -348,10 +472,12 @@ namespace Emolator
         /// </summary>
         private static void Ror(Cpu cpu, InstructionData data)
         {
-            if (data.AddressingMode == AddressingMode.Accumulator) {
+            if (data.AddressingMode == AddressingMode.Accumulator)
+            {
                 cpu.RotateRight(ref cpu.accumulator);
             }
-            else {
+            else
+            {
                 var value = cpu.ReadByte(data.ArgumentAddress);
                 cpu.RotateRight(ref value);
                 cpu.WriteByte(data.ArgumentAddress, value);
@@ -361,12 +487,18 @@ namespace Emolator
         /// <summary>
         /// ReTurn from Interrupt
         /// </summary>
-        private static void Rti(Cpu cpu, InstructionData data) { }
+        private static void Rti(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// ReTurn from Subroutine
         /// </summary>
-        private static void Rts(Cpu cpu, InstructionData data) { }
+        private static void Rts(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// SuBtract with Carry
@@ -382,7 +514,7 @@ namespace Emolator
             cpu.SetZeroNegative(cpu.accumulator);
             cpu.SetFlag(CpuFlags.Carry, result >= 0);
             cpu.SetFlag(CpuFlags.Overflow, (((a ^ b) & 0x80) != 0) && (((a ^ cpu.accumulator) & 0x80) != 0));
-            
+
         }
 
         /// <summary>
@@ -413,7 +545,10 @@ namespace Emolator
         /// <summary>
         /// PusH Accumulator
         /// </summary>
-        private static void Pha(Cpu cpu, InstructionData data) { }
+        private static void Pha(Cpu cpu, InstructionData data)
+        {
+            cpu.PushByte(cpu.accumulator);
+        }
 
         /// <summary>
         /// PuLl Accumulator
@@ -427,12 +562,18 @@ namespace Emolator
         /// <summary>
         /// PusH Processor status
         /// </summary>
-        private static void Php(Cpu cpu, InstructionData data) { }
+        private static void Php(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// PuLl Processor status
         /// </summary>
-        private static void Plp(Cpu cpu, InstructionData data) { }
+        private static void Plp(Cpu cpu, InstructionData data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// STore X register

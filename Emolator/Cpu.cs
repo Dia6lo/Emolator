@@ -134,18 +134,12 @@ namespace Emolator
         private void Load(out byte target, ushort address)
         {
             target = ReadByte(address);
+            SetZeroNegative(target);
         }
 
         private void Store(ushort address, byte value)
         {
             WriteByte(address, value);
-        }
-
-        private void AddWithCarry(ushort address)
-        {
-            var result = accumulator + ReadByte(address);
-            SetFlag(CpuFlags.Carry, result > byte.MaxValue);
-            accumulator = (byte) result;
         }
 
         private void Transfer(byte from, out byte to)
@@ -157,17 +151,13 @@ namespace Emolator
         private void Increment(ref byte value)
         {
             value++;
+            SetZeroNegative(value);
         }
 
         private void Decrement(ref byte value)
         {
             value--;
-        }
-
-        private void Compare(byte value, ushort address)
-        {
-            var other = ReadByte(address);
-            SetFlag(CpuFlags.Carry, value >= other);
+            SetZeroNegative(value);
         }
 
         private void Branch(bool condition)
@@ -209,6 +199,26 @@ namespace Emolator
             SetFlag(CpuFlags.Carry, ((value >> 7) & 1) != 0);
             value = (byte)((value << 1) | c);
             SetZeroNegative(value);
+        }
+
+        private void LogicalShiftLeft(ref byte value)
+        {
+            SetFlag(CpuFlags.Carry, (value & 1) != 0);
+            value >>= 1;
+            SetZeroNegative(value);
+        }
+
+        private void ArithmeticShiftLeft(ref byte value)
+        {
+            SetFlag(CpuFlags.Carry, ((value>> 7) & 1) != 0);
+            value <<= 1;
+            SetZeroNegative(value);
+        }
+
+        private void Compare(byte lhs, byte rhs)
+        {
+            SetZeroNegative((byte) (lhs - rhs));
+            SetFlag(CpuFlags.Carry, lhs >= rhs);
         }
     }
 }
