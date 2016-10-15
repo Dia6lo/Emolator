@@ -14,8 +14,8 @@ namespace Emolator
             Bvc, Eor, Nop, Nop, Nop, Eor, Lsr, Nop, Cli, Eor, Nop, Nop, Nop, Eor, Lsr, Nop,
             Rts, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Pla, Adc, Ror, Nop, Jmp, Adc, Ror, Nop,
             Bvs, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Sei, Adc, Nop, Nop, Nop, Adc, Ror, Nop,
-            Nop, Sta, Nop, Nop, Sty, Sta, Stx, Nop, Dey, Nop, Txa, Nop, Sty, Sta, Stx, Nop,
-            Bcc, Sta, Nop, Nop, Sty, Sta, Stx, Nop, Tya, Sta, Txs, Nop, Nop, Sta, Nop, Nop,
+            Nop, Sta, Nop, Sax, Sty, Sta, Stx, Sax, Dey, Nop, Txa, Nop, Sty, Sta, Stx, Sax,
+            Bcc, Sta, Nop, Nop, Sty, Sta, Stx, Sax, Tya, Sta, Txs, Nop, Nop, Sta, Nop, Nop,
             Ldy, Lda, Ldx, Lax, Ldy, Lda, Ldx, Lax, Tay, Lda, Tax, Lax, Ldy, Lda, Ldx, Lax,
             Bcs, Lda, Nop, Lax, Ldy, Lda, Ldx, Lax, Clv, Lda, Tsx, Nop, Ldy, Lda, Ldx, Lax,
             Cpy, Cmp, Nop, Nop, Cpy, Cmp, Dec, Nop, Iny, Cmp, Dex, Nop, Cpy, Cmp, Dec, Nop,
@@ -624,6 +624,14 @@ namespace Emolator
             cpu.accumulator = value;
             cpu.x = value;
             cpu.SetZeroNegative(value);
+        }
+
+        /// <summary>
+        /// Store Accumulator and X register
+        /// </summary>
+        private static void Sax(Cpu cpu, InstructionData data)
+        {
+            cpu.Store(data.ArgumentAddress, (byte) (cpu.accumulator & cpu.x));
         }
     }
 }
