@@ -6,22 +6,22 @@ namespace Emolator
     {
         private static readonly Action<Cpu, InstructionData>[] Instructions =
         {
-            Brk, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Php, Ora, Asl, Nop, Nop, Ora, Asl, Nop,
-            Bpl, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Clc, Ora, Nop, Nop, Nop, Ora, Asl, Nop,
-            Jsr, And, Nop, Nop, Bit, And, Rol, Nop, Plp, And, Rol, Nop, Bit, And, Rol, Nop,
-            Bmi, And, Nop, Nop, Nop, And, Rol, Nop, Sec, And, Nop, Nop, Nop, And, Rol, Nop,
-            Rti, Eor, Nop, Nop, Nop, Eor, Lsr, Nop, Pha, Eor, Lsr, Nop, Jmp, Eor, Lsr, Nop,
-            Bvc, Eor, Nop, Nop, Nop, Eor, Lsr, Nop, Cli, Eor, Nop, Nop, Nop, Eor, Lsr, Nop,
-            Rts, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Pla, Adc, Ror, Nop, Jmp, Adc, Ror, Nop,
-            Bvs, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Sei, Adc, Nop, Nop, Nop, Adc, Ror, Nop,
+            Brk, Ora, Nop, Slo, Nop, Ora, Asl, Slo, Php, Ora, Asl, Nop, Nop, Ora, Asl, Slo,
+            Bpl, Ora, Nop, Slo, Nop, Ora, Asl, Slo, Clc, Ora, Nop, Slo, Nop, Ora, Asl, Slo,
+            Jsr, And, Nop, Rla, Bit, And, Rol, Rla, Plp, And, Rol, Nop, Bit, And, Rol, Rla,
+            Bmi, And, Nop, Rla, Nop, And, Rol, Rla, Sec, And, Nop, Rla, Nop, And, Rol, Rla,
+            Rti, Eor, Nop, Sre, Nop, Eor, Lsr, Sre, Pha, Eor, Lsr, Nop, Jmp, Eor, Lsr, Sre,
+            Bvc, Eor, Nop, Sre, Nop, Eor, Lsr, Sre, Cli, Eor, Nop, Sre, Nop, Eor, Lsr, Sre,
+            Rts, Adc, Nop, Rra, Nop, Adc, Ror, Rra, Pla, Adc, Ror, Nop, Jmp, Adc, Ror, Rra,
+            Bvs, Adc, Nop, Rra, Nop, Adc, Ror, Rra, Sei, Adc, Nop, Rra, Nop, Adc, Ror, Rra,
             Nop, Sta, Nop, Sax, Sty, Sta, Stx, Sax, Dey, Nop, Txa, Nop, Sty, Sta, Stx, Sax,
             Bcc, Sta, Nop, Nop, Sty, Sta, Stx, Sax, Tya, Sta, Txs, Nop, Nop, Sta, Nop, Nop,
             Ldy, Lda, Ldx, Lax, Ldy, Lda, Ldx, Lax, Tay, Lda, Tax, Lax, Ldy, Lda, Ldx, Lax,
             Bcs, Lda, Nop, Lax, Ldy, Lda, Ldx, Lax, Clv, Lda, Tsx, Nop, Ldy, Lda, Ldx, Lax,
-            Cpy, Cmp, Nop, Nop, Cpy, Cmp, Dec, Nop, Iny, Cmp, Dex, Nop, Cpy, Cmp, Dec, Nop,
-            Bne, Cmp, Nop, Nop, Nop, Cmp, Dec, Nop, Cld, Cmp, Nop, Nop, Nop, Cmp, Dec, Nop,
-            Cpx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop, Inx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop,
-            Beq, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop, Sed, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop
+            Cpy, Cmp, Nop, Dcp, Cpy, Cmp, Dec, Dcp, Iny, Cmp, Dex, Nop, Cpy, Cmp, Dec, Dcp,
+            Bne, Cmp, Nop, Dcp, Nop, Cmp, Dec, Dcp, Cld, Cmp, Nop, Dcp, Nop, Cmp, Dec, Dcp,
+            Cpx, Sbc, Nop, Isb, Cpx, Sbc, Inc, Isb, Inx, Sbc, Nop, Sbc, Cpx, Sbc, Inc, Isb,
+            Beq, Sbc, Nop, Isb, Nop, Sbc, Inc, Isb, Sed, Sbc, Nop, Isb, Nop, Sbc, Inc, Isb
         };
 
         private static readonly AddressingMode[] InstructionAdressingModes =
@@ -32,7 +32,7 @@ namespace Emolator
             Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
             Imp, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Abs, Abs, Abs, Abs,
             Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
-            Imp, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Ind, Abs, Abs, Imp,
+            Imp, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Ind, Abs, Abs, Abs,
             Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
             Ime, Iix, Ime, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Imp, Ime, Abs, Abs, Abs, Abs,
             Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpy, Zpy, Imp, Aby, Imp, Aby, Abx, Abx, Aby, Aby,
@@ -512,7 +512,8 @@ namespace Emolator
         /// </summary>
         private static void Rti(Cpu cpu, InstructionData data)
         {
-            cpu.flags = (CpuFlags) cpu.PullByte();
+            var pullByte = cpu.PullByte();
+            cpu.flags = (CpuFlags) (pullByte & 0xEF | 0x20);
             cpu.programCounter = cpu.PullShort();
         }
 
@@ -532,7 +533,7 @@ namespace Emolator
             var a = cpu.accumulator;
             var b = cpu.ReadByte(data.ArgumentAddress);
             var result = a - b;
-            if (cpu.GetFlag(CpuFlags.Carry))
+            if (!cpu.GetFlag(CpuFlags.Carry))
                 result -= 1;
             cpu.accumulator = (byte) result;
             cpu.SetZeroNegative(cpu.accumulator);
@@ -588,7 +589,7 @@ namespace Emolator
         /// </summary>
         private static void Php(Cpu cpu, InstructionData data)
         {
-            cpu.PushByte((byte) cpu.flags);
+            cpu.PushByte((byte) ((byte)cpu.flags | 0x10));
         }
 
         /// <summary>
@@ -596,7 +597,7 @@ namespace Emolator
         /// </summary>
         private static void Plp(Cpu cpu, InstructionData data)
         {
-            cpu.flags = (CpuFlags) cpu.PullByte();
+            cpu.flags = (CpuFlags) (cpu.PullByte() & 0xEF | 0x20);
         }
 
         /// <summary>
@@ -632,6 +633,60 @@ namespace Emolator
         private static void Sax(Cpu cpu, InstructionData data)
         {
             cpu.Store(data.ArgumentAddress, (byte) (cpu.accumulator & cpu.x));
+        }
+
+        /// <summary>
+        /// Decrease memory and ComPare with accumulator
+        /// </summary>
+        private static void Dcp(Cpu cpu, InstructionData data)
+        {
+            Dec(cpu, data);
+            Cmp(cpu, data);
+        }
+
+        /// <summary>
+        /// Increment memory and Subtract with Carry
+        /// </summary>
+        private static void Isb(Cpu cpu, InstructionData data)
+        {
+            Inc(cpu, data);
+            Sbc(cpu, data);
+        }
+
+        /// <summary>
+        /// arithmetic Shift Left then Or accumulator with memory
+        /// </summary>
+        private static void Slo(Cpu cpu, InstructionData data)
+        {
+            Asl(cpu, data);
+            Ora(cpu, data);
+        }
+
+        /// <summary>
+        /// Rotate Left then And accumulator with memory
+        /// </summary>
+        private static void Rla(Cpu cpu, InstructionData data)
+        {
+            Rol(cpu, data);
+            And(cpu, data);
+        }
+
+        /// <summary>
+        /// logical Shift Right then Eor accumulator with memory
+        /// </summary>
+        private static void Sre(Cpu cpu, InstructionData data)
+        {
+            Lsr(cpu, data);
+            Eor(cpu, data);
+        }
+
+        /// <summary>
+        /// Rotate Right, then Add memory to accumulator with carry
+        /// </summary>
+        private static void Rra(Cpu cpu, InstructionData data)
+        {
+            Ror(cpu, data);
+            Adc(cpu, data);
         }
     }
 }

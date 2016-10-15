@@ -4,7 +4,7 @@ namespace Emolator
 {
     public class Console
     {
-        private Cpu cpu;
+        public Cpu cpu;
         private DataBus dataBus;
 
         private readonly byte[] ram = new byte[0x0800];

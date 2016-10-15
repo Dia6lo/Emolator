@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 
 namespace Emolator
@@ -9,9 +10,9 @@ namespace Emolator
         private byte accumulator;
         private byte x;
         private byte y;
-        private ushort programCounter = 0x8000;
-        private byte stackPointer = 0xff;
-        private CpuFlags flags = CpuFlags.Unused;
+        private ushort programCounter = 0xC000;
+        private byte stackPointer = 0xfd;
+        private CpuFlags flags = CpuFlags.Unused | CpuFlags.InterruptDisable;
         private byte waitCycles;
 
         public Cpu(DataBus dataBus)
@@ -45,16 +46,37 @@ namespace Emolator
         private ushort ReadShortBug(ushort address)
         {
             var a = address;
-            var b = (ushort)((a & 0xff00) | (ushort) ((byte) a + 1));
+            var b = (ushort)((a & 0xff00) | (byte) (a + 1));
             return ToShort(ReadByte(a), ReadByte(b));
         }
 
-        public void Advance()
+        public bool Assert(string address, string[] bytes, string accumulator, string x, string y, string flags, string stack)
+        {
+            var opCode = ReadByte(programCounter);
+            var adressingMode = InstructionAdressingModes[opCode];
+            if (GetInstructionSize(adressingMode) != bytes.Length) return false;
+            var programCounterHex = programCounter.ToString("X4");
+            var accumulatorHex = this.accumulator.ToString("X2");
+            var xHex = this.x.ToString("X2");
+            var yHex = this.y.ToString("X2");
+            var flagsHex = ((byte)this.flags).ToString("X2");
+            var stackHex = stackPointer.ToString("X2");
+            var assert = programCounterHex == address &&
+                accumulatorHex == accumulator &&
+                xHex == x &&
+                yHex == y &&
+                flagsHex == flags &&
+                stackHex == stack;
+            if (!assert) return false;
+            return !bytes.Where((t, i) => ReadByte((ushort) (programCounter + i)).ToString("X2") != t).Any();
+        }
+
+        public bool Advance()
         {
             if (waitCycles > 0)
             {
                 waitCycles--;
-                return;
+                return false;
             }
             var log = new StringBuilder();
             log.Append($"0x{programCounter:X4}");
@@ -84,6 +106,7 @@ namespace Emolator
             log.Append($" {opCode:X2} {instruction.Method.Name.ToUpper()} {adressingMode} 0x{instructionData.ArgumentAddress:X4}");
             instruction(this, instructionData);
             System.Console.Out.WriteLine(log.ToString());
+            return true;
         }
 
         private ushort GetInstructionArgumentAddress(AddressingMode mode)
@@ -95,8 +118,8 @@ namespace Emolator
                 case AddressingMode.AbsoluteX: return (ushort)(ReadShort(argumentAddress) + x);
                 case AddressingMode.AbsoluteY: return (ushort)(ReadShort(argumentAddress) + y);
                 case AddressingMode.ZeroPage: return ReadByte(argumentAddress);
-                case AddressingMode.ZeroPageX: return (ushort)(ReadByte(argumentAddress) + x);
-                case AddressingMode.ZeroPageY: return (ushort)(ReadByte(argumentAddress) + y);
+                case AddressingMode.ZeroPageX: return (byte)(ReadByte(argumentAddress) + x);
+                case AddressingMode.ZeroPageY: return (byte)(ReadByte(argumentAddress) + y);
                 case AddressingMode.Immediate: return argumentAddress;
                 case AddressingMode.Relative:
                 {
@@ -107,8 +130,8 @@ namespace Emolator
                 }
                 case AddressingMode.Implied: return 0;
                 case AddressingMode.Indirect: return ReadShortBug(ReadShort(argumentAddress));
-                case AddressingMode.IndexedIndirectX: return ReadShortBug((ushort)(ReadByte(argumentAddress) + x));
-                case AddressingMode.IndirectIndexedY: return (ushort) (ReadShortBug(ReadByte(argumentAddress)) + x);
+                case AddressingMode.IndexedIndirectX: return ReadShortBug((byte)(ReadByte(argumentAddress) + x));
+                case AddressingMode.IndirectIndexedY: return (ushort) (ReadShortBug(ReadByte(argumentAddress)) + y);
                 case AddressingMode.Accumulator: return 0;
                 default:
                     throw new ArgumentOutOfRangeException();
