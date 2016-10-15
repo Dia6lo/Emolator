@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Emolator
 {
@@ -8,7 +9,7 @@ namespace Emolator
         private byte accumulator;
         private byte x;
         private byte y;
-        private ushort programCounter = 0xC000 - 1;
+        private ushort programCounter = 0x8000;
         private byte stackPointer = 0xff;
         private CpuFlags flags = CpuFlags.Unused;
         private byte waitCycles;
@@ -44,7 +45,7 @@ namespace Emolator
         private ushort ReadShortBug(ushort address)
         {
             var a = address;
-            var b = (ushort)((a * 0xff00) | (ushort) ((byte) a + 1));
+            var b = (ushort)((a & 0xff00) | (ushort) ((byte) a + 1));
             return ToShort(ReadByte(a), ReadByte(b));
         }
 
@@ -55,6 +56,8 @@ namespace Emolator
                 waitCycles--;
                 return;
             }
+            var log = new StringBuilder();
+            log.Append($"0x{programCounter:X4}");
             var opCode = ReadByte(programCounter);
             var instruction = Instructions[opCode];
             var adressingMode = InstructionAdressingModes[opCode];
@@ -64,12 +67,23 @@ namespace Emolator
                 ProgramCounter = programCounter,
                 AddressingMode = adressingMode
             };
-            programCounter += GetInstructionSize(adressingMode);
+            var instructionSize = GetInstructionSize(adressingMode);
+            for (int i = 0; i < 3; i++)
+            {
+                if (i <= instructionSize)
+                    log.Append($" {ReadByte((ushort) (programCounter + i)):X2}");
+                else
+                {
+                    log.Append("   ");
+                }
+            }
+            programCounter += instructionSize;
             waitCycles = InstructionCycles[opCode];
             if (IsPageCrossed(adressingMode, instructionData.ArgumentAddress))
                 waitCycles += InstructionPageCrossCycles[opCode];
+            log.Append($" {opCode:X2} {instruction.Method.Name.ToUpper()} {adressingMode} 0x{instructionData.ArgumentAddress:X4}");
             instruction(this, instructionData);
-            System.Console.Out.WriteLine($"{opCode:X2} = {instruction.Method.Name.ToUpper()} {adressingMode} {instructionData.ArgumentAddress:X4}");
+            System.Console.Out.WriteLine(log.ToString());
         }
 
         private ushort GetInstructionArgumentAddress(AddressingMode mode)
@@ -144,7 +158,7 @@ namespace Emolator
 
         private void SetNegative(byte value)
         {
-            SetFlag(CpuFlags.Zero, (value & 0x80) != 0);
+            SetFlag(CpuFlags.Negative, (value & 0x80) != 0);
         }
 
         private void SetZeroNegative(byte value)
@@ -212,9 +226,8 @@ namespace Emolator
 
         private byte PullByte()
         {
-            var address = StackAddress;
             stackPointer++;
-            return ReadByte(address);
+            return ReadByte(StackAddress);
         }
 
         private ushort PullShort()

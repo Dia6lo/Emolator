@@ -26,6 +26,7 @@ namespace Emolator
         public void LoadRom(Rom rom)
         {
             dataBus.Bind(0x8000, rom.Prg.ToArray());
+            dataBus.Bind(0xC000, rom.Prg.ToArray());
         }
 
         public void Tick()
