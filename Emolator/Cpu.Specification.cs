@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Windows.Forms;
 
 namespace Emolator
 {
     public partial class Cpu
     {
-        private static Action<Cpu, InstructionData>[] instructions =
+        private static readonly Action<Cpu, InstructionData>[] Instructions =
         {
             Brk, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Php, Ora, Asl, Nop, Nop, Ora, Asl, Nop,
             Bpl, Ora, Nop, Nop, Nop, Ora, Asl, Nop, Clc, Ora, Nop, Nop, Nop, Ora, Asl, Nop,
@@ -25,7 +24,7 @@ namespace Emolator
             Beq, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop, Sed, Sbc, Nop, Nop, Nop, Sbc, Inc, Nop
         };
 
-        private static AddressingMode[] instructionAdressingModes =
+        private static readonly AddressingMode[] InstructionAdressingModes =
         {
             Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Imp, Abs, Abs, Imp,
             Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
@@ -45,7 +44,7 @@ namespace Emolator
             Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp
         };
 
-        private static int[] instructionCycles =
+        private static readonly byte[] InstructionCycles =
         {
             7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
             2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
@@ -63,6 +62,26 @@ namespace Emolator
             2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
             2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
             2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7
+        };
+
+        private static readonly byte[] InstructionPageCrossCycles =
+        {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0
         };
 
         private static AddressingMode Abs => AddressingMode.Absolute;
@@ -137,7 +156,7 @@ namespace Emolator
         /// </summary>
         private static void Bpl(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(!cpu.GetFlag(CpuFlags.Negative), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -145,7 +164,7 @@ namespace Emolator
         /// </summary>
         private static void Bmi(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(cpu.GetFlag(CpuFlags.Negative), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -153,7 +172,7 @@ namespace Emolator
         /// </summary>
         private static void Bvc(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(!cpu.GetFlag(CpuFlags.Overflow), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -161,7 +180,7 @@ namespace Emolator
         /// </summary>
         private static void Bvs(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(cpu.GetFlag(CpuFlags.Overflow), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -169,7 +188,7 @@ namespace Emolator
         /// </summary>
         private static void Bcc(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(!cpu.GetFlag(CpuFlags.Carry), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -177,7 +196,7 @@ namespace Emolator
         /// </summary>
         private static void Bcs(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(cpu.GetFlag(CpuFlags.Carry), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -185,7 +204,7 @@ namespace Emolator
         /// </summary>
         private static void Bne(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(!cpu.GetFlag(CpuFlags.Zero), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -193,7 +212,7 @@ namespace Emolator
         /// </summary>
         private static void Beq(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.Branch(cpu.GetFlag(CpuFlags.Zero), data.ArgumentAddress);
         }
 
         /// <summary>
@@ -201,7 +220,10 @@ namespace Emolator
         /// </summary>
         private static void Brk(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.PushShort(cpu.programCounter);
+            cpu.PushByte((byte) cpu.flags);
+            cpu.SetFlag(CpuFlags.InterruptDisable, true);
+            cpu.programCounter = cpu.ReadShort(0xfffe);
         }
 
         /// <summary>
@@ -326,7 +348,8 @@ namespace Emolator
         /// </summary>
         private static void Jsr(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.PushShort((ushort) (cpu.programCounter - 1));
+            cpu.programCounter = data.ArgumentAddress;
         }
 
         /// <summary>
@@ -489,7 +512,8 @@ namespace Emolator
         /// </summary>
         private static void Rti(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.flags = (CpuFlags) cpu.PullByte();
+            cpu.programCounter = cpu.PullShort();
         }
 
         /// <summary>
@@ -497,7 +521,7 @@ namespace Emolator
         /// </summary>
         private static void Rts(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.programCounter = (ushort) (cpu.PullShort() + 1);
         }
 
         /// <summary>
@@ -564,7 +588,7 @@ namespace Emolator
         /// </summary>
         private static void Php(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.PushByte((byte) cpu.flags);
         }
 
         /// <summary>
@@ -572,7 +596,7 @@ namespace Emolator
         /// </summary>
         private static void Plp(Cpu cpu, InstructionData data)
         {
-            throw new NotImplementedException();
+            cpu.flags = (CpuFlags) cpu.PullByte();
         }
 
         /// <summary>

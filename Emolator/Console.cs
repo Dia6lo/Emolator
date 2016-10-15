@@ -1,17 +1,16 @@
+using System.Linq;
+
 namespace Emolator
 {
     public class Console
     {
         private Cpu cpu;
         private DataBus dataBus;
-        
+
         private readonly byte[] ram = new byte[0x0800];
-        
+
         // TODO
-        private readonly byte[] program =
-        {
-            0xa9 ,0x03 ,0x4c ,0x08 ,0x06 ,0x00 ,0x00 ,0x00 ,0x8d ,0x00 ,0x02
-        };
+        private readonly byte[] someMemory = new byte[0x6000];
 
         public Console()
         {
@@ -20,8 +19,13 @@ namespace Emolator
             dataBus.Bind(0x0800, ram);
             dataBus.Bind(0x1000, ram);
             dataBus.Bind(0x1800, ram);
-            dataBus.Bind(0x2000, program);
+            dataBus.Bind(0x2000, someMemory);
             cpu = new Cpu(dataBus);
+        }
+
+        public void LoadRom(Rom rom)
+        {
+            dataBus.Bind(0x8000, rom.Prg.ToArray());
         }
 
         public void Tick()

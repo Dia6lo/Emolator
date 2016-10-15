@@ -8,9 +8,10 @@ namespace Emolator
         private byte accumulator;
         private byte x;
         private byte y;
-        private ushort programCounter = 0x0600;
+        private ushort programCounter = 0xC000 - 1;
         private byte stackPointer = 0xff;
-        private CpuFlags flags = (CpuFlags) 48; // 00110000
+        private CpuFlags flags = CpuFlags.Unused;
+        private byte waitCycles;
 
         public Cpu(DataBus dataBus)
         {
@@ -49,9 +50,14 @@ namespace Emolator
 
         public void Advance()
         {
+            if (waitCycles > 0)
+            {
+                waitCycles--;
+                return;
+            }
             var opCode = ReadByte(programCounter);
-            var instruction = instructions[opCode];
-            var adressingMode = instructionAdressingModes[opCode];
+            var instruction = Instructions[opCode];
+            var adressingMode = InstructionAdressingModes[opCode];
             var instructionData = new InstructionData
             {
                 ArgumentAddress = GetInstructionArgumentAddress(adressingMode),
@@ -59,6 +65,9 @@ namespace Emolator
                 AddressingMode = adressingMode
             };
             programCounter += GetInstructionSize(adressingMode);
+            waitCycles = InstructionCycles[opCode];
+            if (IsPageCrossed(adressingMode, instructionData.ArgumentAddress))
+                waitCycles += InstructionPageCrossCycles[opCode];
             instruction(this, instructionData);
             System.Console.Out.WriteLine($"{opCode:X2} = {instruction.Method.Name.ToUpper()} {adressingMode} {instructionData.ArgumentAddress:X4}");
         }
@@ -114,6 +123,19 @@ namespace Emolator
             }
         }
 
+        private bool IsPageCrossed(AddressingMode mode, ushort address)
+        {
+            switch (mode)
+            {
+                case AddressingMode.AbsoluteX:
+                    return AddressPagesDiffer(address, (ushort)(address - x));
+                case AddressingMode.AbsoluteY:
+                case AddressingMode.IndirectIndexedY:
+                    return AddressPagesDiffer(address, (ushort)(address - y));
+                default:
+                    return false;
+            }
+        }
 
         private void SetZero(byte value)
         {
@@ -160,11 +182,18 @@ namespace Emolator
             SetZeroNegative(value);
         }
 
-        private void Branch(bool condition)
+        private void Branch(bool condition, ushort address)
         {
-            /*var target = (ushort)(programCounter - (byte.MaxValue - NextByte()));
             if (!condition) return;
-            programCounter = target;*/
+            waitCycles++;
+            if (AddressPagesDiffer(programCounter, address))
+                waitCycles++;
+            programCounter = address;
+        }
+
+        private static bool AddressPagesDiffer(ushort first, ushort second)
+        {
+            return (first & 0xff00) != (second & 0xff00);
         }
 
         private void PushByte(byte value)
@@ -173,11 +202,26 @@ namespace Emolator
             stackPointer--;
         }
 
+        private void PushShort(ushort value)
+        {
+            var high = (byte) (value >> 8);
+            var low = (byte) value;
+            PushByte(high);
+            PushByte(low);
+        }
+
         private byte PullByte()
         {
             var address = StackAddress;
             stackPointer++;
             return ReadByte(address);
+        }
+
+        private ushort PullShort()
+        {
+            var low = PullByte();
+            var high = PullByte();
+            return ToShort(low, high);
         }
 
         private void Jump(ushort address)
