@@ -16,8 +16,8 @@ namespace Emolator
             Bvs, Adc, Nop, Nop, Nop, Adc, Ror, Nop, Sei, Adc, Nop, Nop, Nop, Adc, Ror, Nop,
             Nop, Sta, Nop, Nop, Sty, Sta, Stx, Nop, Dey, Nop, Txa, Nop, Sty, Sta, Stx, Nop,
             Bcc, Sta, Nop, Nop, Sty, Sta, Stx, Nop, Tya, Sta, Txs, Nop, Nop, Sta, Nop, Nop,
-            Ldy, Lda, Ldx, Nop, Ldy, Lda, Ldx, Nop, Tay, Lda, Tax, Nop, Ldy, Lda, Ldx, Nop,
-            Bcs, Lda, Nop, Nop, Ldy, Lda, Ldx, Nop, Clv, Lda, Tsx, Nop, Ldy, Lda, Ldx, Nop,
+            Ldy, Lda, Ldx, Lax, Ldy, Lda, Ldx, Lax, Tay, Lda, Tax, Lax, Ldy, Lda, Ldx, Lax,
+            Bcs, Lda, Nop, Lax, Ldy, Lda, Ldx, Lax, Clv, Lda, Tsx, Nop, Ldy, Lda, Ldx, Lax,
             Cpy, Cmp, Nop, Nop, Cpy, Cmp, Dec, Nop, Iny, Cmp, Dex, Nop, Cpy, Cmp, Dec, Nop,
             Bne, Cmp, Nop, Nop, Nop, Cmp, Dec, Nop, Cld, Cmp, Nop, Nop, Nop, Cmp, Dec, Nop,
             Cpx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop, Inx, Sbc, Nop, Nop, Cpx, Sbc, Inc, Nop,
@@ -26,22 +26,22 @@ namespace Emolator
 
         private static readonly AddressingMode[] InstructionAdressingModes =
         {
-            Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Imp, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
-            Abs, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Abs, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
-            Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Abs, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
-            Imp, Iix, Imp, Imp, Imp, Zpg, Zpg, Imp, Imp, Ime, Acc, Imp, Ind, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
-            Imp, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Imp, Imp, Imp, Abs, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Zpx, Zpx, Zpy, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Imp, Imp,
-            Ime, Iix, Ime, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Imp, Imp, Abs, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Zpx, Zpx, Zpy, Imp, Imp, Aby, Imp, Imp, Abx, Abx, Aby, Imp,
-            Ime, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Imp, Imp, Abs, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp,
-            Ime, Iix, Imp, Imp, Zpg, Zpg, Zpg, Imp, Imp, Ime, Imp, Imp, Abs, Abs, Abs, Imp,
-            Rel, Iiy, Imp, Imp, Imp, Zpx, Zpx, Imp, Imp, Aby, Imp, Imp, Imp, Abx, Abx, Imp
+            Imp, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
+            Abs, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
+            Imp, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
+            Imp, Iix, Imp, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Acc, Ime, Ind, Abs, Abs, Imp,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
+            Ime, Iix, Ime, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Imp, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpy, Zpy, Imp, Aby, Imp, Aby, Abx, Abx, Aby, Aby,
+            Ime, Iix, Ime, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Imp, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpy, Zpy, Imp, Aby, Imp, Aby, Abx, Abx, Aby, Aby,
+            Ime, Iix, Ime, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Imp, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx,
+            Ime, Iix, Ime, Iix, Zpg, Zpg, Zpg, Zpg, Imp, Ime, Imp, Ime, Abs, Abs, Abs, Abs,
+            Rel, Iiy, Imp, Iiy, Zpx, Zpx, Zpx, Zpx, Imp, Aby, Imp, Aby, Abx, Abx, Abx, Abx
         };
 
         private static readonly byte[] InstructionCycles =
@@ -361,7 +361,7 @@ namespace Emolator
         }
 
         /// <summary>
-        /// LoaD X registerSEt Decimal
+        /// LoaD X register
         /// </summary>
         private static void Ldx(Cpu cpu, InstructionData data)
         {
@@ -613,6 +613,17 @@ namespace Emolator
         private static void Sty(Cpu cpu, InstructionData data)
         {
             cpu.Store(data.ArgumentAddress, cpu.y);
+        }
+
+        /// <summary>
+        /// Load Accumulator and X register
+        /// </summary>
+        private static void Lax(Cpu cpu, InstructionData data)
+        {
+            var value = cpu.ReadByte(data.ArgumentAddress);
+            cpu.accumulator = value;
+            cpu.x = value;
+            cpu.SetZeroNegative(value);
         }
     }
 }
